@@ -1,0 +1,68 @@
+[workspace]
+members = ["wasm"]
+default-members = ["."]
+resolver = "2"
+
+[package]
+name = "device-envoy-cyd-starter"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+license = "MIT OR Apache-2.0"
+description = "Portable Device Envoy Snake starter for classic ESP32 CYD and WASM"
+
+[features]
+default = ["esp32"]
+esp32 = [
+    "dep:device-envoy-esp",
+    "dep:embassy-executor",
+    "dep:esp-backtrace",
+    "dep:esp-bootloader-esp-idf",
+    "dep:esp-hal",
+    "dep:esp-println",
+    "dep:esp-rtos",
+    "dep:log",
+    "dep:paste",
+    "dep:static_cell",
+    "device-envoy-esp/esp32",
+]
+
+[dependencies]
+# TODO0 Replace both local Device Envoy paths with the released crate versions
+# after this starter has exposed and validated any final API changes.
+device-envoy-core = { path = "../device-envoy/crates/device-envoy-core" }
+derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
+embassy-time = "0.5.1"
+embedded-graphics = { version = "0.8", default-features = false }
+heapless = "0.9.2"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+
+device-envoy-esp = { path = "../device-envoy/crates/device-envoy-esp", default-features = false, optional = true }
+embassy-executor = { version = "0.10.0", optional = true }
+esp-backtrace = { version = "0.19.0", default-features = false, features = ["panic-handler", "halt-cores", "println", "esp32"], optional = true }
+esp-bootloader-esp-idf = { version = "0.5.0", default-features = false, features = ["esp32"], optional = true }
+esp-hal = { version = "1.1.2", default-features = false, features = ["unstable", "esp32"], optional = true }
+esp-println = { version = "0.17.0", default-features = false, features = ["uart", "log-04", "esp32"], optional = true }
+esp-rtos = { version = "0.3.0", default-features = false, features = ["embassy", "esp-radio", "esp-alloc", "esp32"], optional = true }
+log = { version = "0.4", default-features = false, optional = true }
+paste = { version = "1.0", optional = true }
+static_cell = { version = "2.1.1", optional = true }
+
+[[bin]]
+name = "device-envoy-cyd-starter"
+path = "src/main.rs"
+required-features = ["esp32"]
+
+[[example]]
+name = "one_spi"
+path = "examples/one_spi.rs"
+required-features = ["esp32"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+panic = "abort"

@@ -1,0 +1,25 @@
+[package]
+name = "device-envoy-cyd-starter-wasm"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[dependencies]
+# TODO0 Replace local paths with the same released Device Envoy versions used
+# by the root package before publishing the starter repository.
+device-envoy-core = { path = "../../device-envoy/crates/device-envoy-core", features = ["wasm"] }
+device-envoy-cyd-starter = { path = "..", default-features = false }
+derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
+embassy-executor = { version = "0.10.0", features = ["platform-wasm", "executor-thread"] }
+embassy-time = { version = "0.5.1", features = ["wasm", "generic-queue-64"] }
+embedded-graphics = { version = "0.8", default-features = false }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Document", "HtmlCanvasElement", "Window", "console"] }
