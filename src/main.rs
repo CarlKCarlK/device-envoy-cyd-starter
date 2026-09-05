@@ -24,29 +24,27 @@ use log::info;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-// todo000 explain what this is for
+// The app can poll BOOT while the CYD constructor also uses it for calibration.
 button_watch! {
     ButtonWatch {
         pin: GPIO0,
     }
 }
 
-// todo000 have a feature for 1 spi vs 2?
-
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
-    let err = inner_main(spawner).await.unwrap_err();
-    panic!("{err:?}");
+    match inner_main(spawner).await {
+        Ok(never) => match never {},
+        Err(error) => panic!("{error:?}"),
+    }
 }
 
 async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     init_and_start!(p);
     esp_println::logger::init_logger(log::LevelFilter::Info);
-    info!("Starting Device Envoy Snake on the classic two-SPI CYD");
+    info!("Starting Device Envoy Paint Book on the classic two-SPI CYD");
 
-    // These are intentionally separate persisted concepts: device calibration
-    // and application data. They happen to occupy adjacent flash blocks.
-    let [mut calibration_flash_block, mut high_score_flash_block] =
+    let [mut calibration_flash_block, mut page_flash_block] =
         FlashBlockEsp::new_array::<2>(p.FLASH)?;
     let button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
@@ -82,21 +80,20 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     .await?;
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
-    // todo000 this is weird. Nicer to get the return value and process it.
-    match app::run(&mut cyd, &mut *button_watch, &mut high_score_flash_block).await? {
+    match app::run(&mut cyd, &*button_watch, &mut page_flash_block).await? {
         app::Exit::CalibrationRequested => {
             calibration_flash_block.clear()?;
-            // todo000 yikes "modal"
-            let mut frame = cyd.display().frame_mut(app::MODAL_RECTANGLE);
+            let mut frame = cyd.display().full_frame_mut();
             frame.clear().write_text("Recalibrating after restart");
             frame.flush()?;
-            info!("Cleared only touch calibration; high score remains stored");
+            info!("Cleared touch calibration; the selected paint page remains stored");
             esp_hal::system::software_reset();
         }
     }
 }
 
-// todo000 explain this
+// Derived Debug reads these payloads at runtime, but dead_code analysis ignores
+// derived implementations under -D warnings.
 #[derive(derive_more::From)]
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),
@@ -104,7 +101,6 @@ enum Error {
     App(app::Error<cyd::Error, DeviceEnvoyError>),
 }
 
-// todo00 is this nice?
 impl fmt::Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -116,4 +112,3 @@ impl fmt::Debug for Error {
         }
     }
 }
-// todo000 why multiple *.rs files?

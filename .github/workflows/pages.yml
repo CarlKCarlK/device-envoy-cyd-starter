@@ -1,0 +1,68 @@
+name: Deploy WASM demo to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out starter
+        uses: actions/checkout@v6
+        with:
+          path: device-envoy-cyd-starter
+
+      - name: Check out Device Envoy dependency
+        uses: actions/checkout@v6
+        with:
+          repository: CarlKCarlK/device-envoy
+          ref: dev2026sept
+          path: device-envoy
+
+      - name: Install WASM target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked --version 0.15.0
+
+      - name: Build WASM application
+        working-directory: device-envoy-cyd-starter
+        run: wasm-pack build wasm --target web --out-dir pkg
+
+      - name: Assemble site
+        working-directory: device-envoy-cyd-starter
+        run: |
+          mkdir pages
+          cp wasm/index.html pages/index.html
+          cp -R wasm/pkg pages/pkg
+          cp -R wasm/www pages/www
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: device-envoy-cyd-starter/pages
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4

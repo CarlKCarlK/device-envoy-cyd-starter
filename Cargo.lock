@@ -379,7 +379,6 @@ dependencies = [
  "esp-hal",
  "esp-println",
  "esp-rtos",
- "heapless 0.9.3",
  "log",
  "paste",
  "serde",

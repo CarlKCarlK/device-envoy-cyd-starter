@@ -246,7 +246,6 @@ export function setupDemoUx(config) {
   const body = document.body;
 
   body.classList.add("demo-ux-page", `demo-ux-page--${config.orientation}`);
-  const galleryTag = buildGalleryTag(config.galleryUrl);
   const sceneCard = buildSceneCard(config);
   const deviceMode = buildDeviceMode({
     body,
@@ -259,7 +258,6 @@ export function setupDemoUx(config) {
   const notice = buildSimulatorNotice();
 
   body.append(
-    galleryTag.link,
     sceneCard.restingButton,
     sceneCard.scrim,
     deviceMode.button,
@@ -381,15 +379,6 @@ function buildSimulatorNotice() {
   return { element, show };
 }
 
-function buildGalleryTag(galleryUrl) {
-  const link = document.createElement("a");
-  link.className = "demo-ux-gallery-tag";
-  link.href = galleryUrl ?? "../../";
-  link.textContent = "\u2190 Gallery";
-  link.setAttribute("aria-label", "Back to gallery");
-  return { link };
-}
-
 function buildSceneCard(config) {
   const restingButton = document.createElement("button");
   restingButton.type = "button";
@@ -427,8 +416,7 @@ function buildSceneCard(config) {
       <h3>Links</h3>
       <div class="demo-ux-card-links">
         <a href="${escapeHtml(config.coreCodeUrl)}" target="_blank" rel="noopener">Core code</a>
-        <a href="${config.galleryUrl ?? "../../"}">Gallery</a>
-        <a href="https://github.com/CarlKCarlK/linkage-blaze" target="_blank" rel="noopener">GitHub repo</a>
+        <a href="https://github.com/CarlKCarlK/device-envoy-cyd-starter" target="_blank" rel="noopener">GitHub repo</a>
         <a href="https://medium.com/@carlmkadie" target="_blank" rel="noopener">Medium</a>
       </div>
     </section>

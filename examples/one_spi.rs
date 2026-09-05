@@ -1,4 +1,4 @@
-//! Snake on a deliberately shared display/touch SPI bus.
+//! Paint Book on a deliberately shared display/touch SPI bus.
 //!
 //! This is not a software switch for an untouched classic CYD. The factory
 //! board routes the display and XPT2046 touch controller to different signal
@@ -48,9 +48,9 @@ async fn main(spawner: Spawner) -> ! {
 async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     init_and_start!(p);
     esp_println::logger::init_logger(log::LevelFilter::Info);
-    info!("Starting Device Envoy Snake on a physically shared SPI bus");
+    info!("Starting Device Envoy Paint Book on a physically shared SPI bus");
 
-    let [mut calibration_flash_block, mut high_score_flash_block] =
+    let [mut calibration_flash_block, mut page_flash_block] =
         FlashBlockEsp::new_array::<2>(p.FLASH)?;
     let button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
@@ -82,10 +82,10 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     )
     .await?;
 
-    match app::run(&mut cyd, &mut *button_watch, &mut high_score_flash_block).await? {
+    match app::run(&mut cyd, &*button_watch, &mut page_flash_block).await? {
         app::Exit::CalibrationRequested => {
             calibration_flash_block.clear()?;
-            let mut frame = cyd.display().frame_mut(app::MODAL_RECTANGLE);
+            let mut frame = cyd.display().full_frame_mut();
             frame.clear().write_text("Recalibrating after restart");
             frame.flush()?;
             esp_hal::system::software_reset();
@@ -93,6 +93,8 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     }
 }
 
+// Derived Debug reads these payloads at runtime, but dead_code analysis ignores
+// derived implementations under -D warnings.
 #[derive(derive_more::From)]
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),

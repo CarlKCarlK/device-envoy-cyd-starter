@@ -196,7 +196,6 @@ body {
   transform: rotate(180deg);
 }
 
-.demo-ux-gallery-tag,
 .demo-ux-device-button,
 .demo-ux-time-chip {
   min-height: 44px;
@@ -210,7 +209,6 @@ body {
   letter-spacing: 0.02em;
 }
 
-.demo-ux-gallery-tag,
 .demo-ux-device-button,
 .demo-ux-time-chip,
 .demo-ux-card-tag,
@@ -219,17 +217,6 @@ body {
 .demo-ux-time-action {
   appearance: none;
   cursor: pointer;
-}
-
-.demo-ux-gallery-tag {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 30;
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  transform: rotate(-2deg);
 }
 
 .demo-ux-device-button {
@@ -415,7 +402,6 @@ body {
   color: rgb(255, 255, 255); /* white */
 }
 
-.demo-ux-device-active .demo-ux-gallery-tag,
 .demo-ux-device-active .demo-ux-card-tag,
 .demo-ux-device-active .demo-ux-device-button,
 .demo-ux-device-active .boot-button,

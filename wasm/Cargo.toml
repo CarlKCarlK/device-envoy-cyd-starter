@@ -12,8 +12,8 @@ crate-type = ["cdylib", "rlib"]
 wasm-opt = false
 
 [dependencies]
-# TODO0 Replace local paths with the same released Device Envoy versions used
-# by the root package before publishing the starter repository.
+# TODO0 Replace this local Device Envoy path with the same crates.io version
+# used by the root package.
 device-envoy-core = { path = "../../device-envoy/crates/device-envoy-core", features = ["wasm"] }
 device-envoy-cyd-starter = { path = "..", default-features = false }
 derive_more = { version = "2.1.1", default-features = false, features = ["from"] }

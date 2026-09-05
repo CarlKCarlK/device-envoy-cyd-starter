@@ -10,7 +10,7 @@ use embedded_graphics::mono_font::ascii::FONT_6X10;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const WEB_APP: cyd_web::Config = cyd_web::Config::new(
-    "device-envoy/cyd-snake",
+    "device-envoy/cyd-paint-book",
     Orientation::Landscape,
     BACKGROUND_COLOR,
     FOREGROUND_COLOR,
@@ -18,10 +18,10 @@ const WEB_APP: cyd_web::Config = cyd_web::Config::new(
 );
 
 const PAGE_INFO: cyd_web::PageInfo = cyd_web::PageInfo::new(
-    "Device Envoy Snake",
-    "Play the same stylus-driven Snake application that runs on an ESP32 CYD.",
-    "A low-memory Device Envoy demo with shared game, UI, touch, bitmap, and persistence code.",
-    "Use the on-screen direction and pause buttons. The browser stores your high score locally.",
+    "Device Envoy Paint Book",
+    "Drag colors into pictures in the same application that runs on an ESP32 CYD.",
+    "A concise Device Envoy starter with shared touch, framebuffer, bitmap, and persistence code.",
+    "Start each stroke on the color you want to carry. Tap the folded corner for a fresh page.",
     "https://github.com/CarlKCarlK/device-envoy-cyd-starter/blob/main/src/app.rs",
 );
 
@@ -32,10 +32,10 @@ pub fn start(canvas_id: &str) -> Result<cyd_web::Handle, wasm_bindgen::JsValue> 
 
 async fn inner_main(capabilities: cyd_web::Capabilities) -> Result<cyd_web::Command, Error> {
     let mut cyd = capabilities.cyd;
-    let mut button = capabilities.button;
-    let mut high_score_storage = FlashBlockWasm::new("device-envoy/cyd-snake/high-score")?;
+    let button = capabilities.button;
+    let mut page_storage = FlashBlockWasm::new("device-envoy/cyd-paint-book/page")?;
 
-    match app::run(&mut cyd, &mut button, &mut high_score_storage).await? {
+    match app::run(&mut cyd, &button, &mut page_storage).await? {
         app::Exit::CalibrationRequested => Ok(cyd_web::Command::CalibrationNotNeeded),
     }
 }
