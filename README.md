@@ -6,9 +6,11 @@ A small Device Envoy application for the classic ESP32 Cheap Yellow Display.
 The same application code runs on real hardware and in the browser CYD
 simulator.
 
-Start a stroke on a color and drag it into the picture. Touch the folded corner
-to switch between the crab-beach, dog-walk, and cave-art pages. The selected
-page survives a restart.
+Start a stroke on a color and drag it into the picture. The color is sampled
+from the framebuffer at the start of the stroke, so painted areas intentionally
+become new color sources. There is no separate fixed palette. Touch the folded
+corner to switch between the crab-beach, dog-walk, and cave-art pages. The
+selected page survives a restart.
 
 ## Run it
 
@@ -44,9 +46,11 @@ device restarts.
 - explicit hardware construction for two-SPI and one-SPI CYD wiring.
 
 The framebuffer itself is the painting. On touch-down, the app reads that
-pixel's color. Touch movement draws a thick line with the carried color. This
-keeps the portable application in [`src/app.rs`](src/app.rs) concise: there is
-no scene graph, modal state, dirty-region renderer, or game engine.
+pixel's color; touch movement draws a thick line with the carried color. This
+deliberately makes the canvas both the rendered image and the color source for
+future strokes. It keeps the portable application in
+[`src/app.rs`](src/app.rs) concise: there is no separate palette, scene graph,
+modal state, dirty-region renderer, or game engine.
 
 ## Repository layout
 

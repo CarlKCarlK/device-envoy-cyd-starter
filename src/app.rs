@@ -28,6 +28,7 @@ pub const FRAME_PIXEL_COUNT: usize = SCREEN_PIXELS;
 const PAGE_TURN: Rectangle = Rectangle::new(Point::new(270, 0), Size::new(50, 45));
 const BRUSH_WIDTH: u32 = 7;
 const INPUT_POLL_INTERVAL: Duration = Duration::from_millis(16);
+// TODO000 Add an FPS meter.
 
 // TODO000 Is too much functionality still concentrated in this file?
 
