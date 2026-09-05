@@ -8,6 +8,7 @@ use device_envoy_core::{
     },
     flash_block::FlashBlock,
 };
+use embassy_time::Timer;
 use embedded_graphics::{
     Drawable,
     geometry::{Point, Size},
@@ -24,7 +25,6 @@ pub const APP_FONT: MonoFont<'static> = FONT_9X15_BOLD;
 pub const FRAME_PIXEL_COUNT: usize = SCREEN_PIXELS;
 pub const PAGE_TURN: Rectangle = Rectangle::new(Point::new(270, 0), Size::new(50, 45));
 pub const BRUSH_WIDTH: u32 = 7;
-pub const INPUT_POLL_INTERVAL: embassy_time::Duration = embassy_time::Duration::from_millis(16);
 
 pub const DOG_WALK: Image565View = {
     const IMAGE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
@@ -70,6 +70,7 @@ where
         top_left: Point::zero(),
     }
     .draw(&mut frame);
+    frame.flush().await?;
     let mut previous_point = None;
     loop {
         if calibration_button.is_pressed() {
@@ -77,7 +78,15 @@ where
         }
 
         match touch.try_read()? {
+            // When there is no new touch input,
+            None => {
+                // wait 16 millis and then go up and look for a touch input again.
+                Timer::after_millis(16).await;
+                continue;
+            }
+            // When a touch begins in the page-turn area,
             Some(TouchEvent::Down { point }) if PAGE_TURN.contains(point) => {
+                // clear the previous touch point and advance to the next page.
                 previous_point = None;
                 page = page.next();
                 DrawItem::Bitmap {
@@ -87,10 +96,14 @@ where
                 .draw(&mut frame);
                 page_flash_block.save(&page)?;
             }
+            // When a touch begins elsewhere on the page,
             Some(TouchEvent::Down { point }) => {
+                // remember the touched point.
                 previous_point = Some(point);
             }
+            // When the touch moves,
             Some(TouchEvent::Move { point }) => {
+                // draw a line from the previous point (if any) using the color beneath it.
                 if let Some(previous_point) = &mut previous_point {
                     if let Some(color) = frame.pixel(*previous_point) {
                         Line::new(*previous_point, point)
@@ -101,12 +114,14 @@ where
                     *previous_point = point;
                 }
             }
+            // When the touch is released,
             Some(TouchEvent::Up) => {
+                // clear the previous touch point.
                 previous_point = None;
             }
-            None => {}
         }
 
+        // We always flush the frame to the hardware.
         frame.flush().await?;
     }
 }
