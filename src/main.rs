@@ -61,7 +61,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
 
     let [mut calibration_flash_block, mut page_flash_block] =
         FlashBlockEsp::new_array::<2>(p.FLASH)?;
-    let button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
+    let calibration_button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
     static CYD_STATIC: CydStaticEsp<FRAME_PIXEL_COUNT> = CydEsp::new_static();
     let mut cyd = CydEsp::new(
@@ -90,12 +90,12 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
         p.GPIO36,
         // Calibration storage and recalibration button:
         &mut calibration_flash_block,
-        &mut *button_watch,
+        &mut *calibration_button_watch,
     )
     .await?;
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
-    let exit = run(&mut cyd, &*button_watch, &mut page_flash_block).await?;
+    let exit = run(&mut cyd, &*calibration_button_watch, &mut page_flash_block).await?;
     match exit {
         Exit::CalibrationRequested => {
             info!("Clear touch calibration and reset; the paint page selection remains");
@@ -142,61 +142,48 @@ const CAVE_ART: Image565View = {
     .to_565();
     IMAGE.view()
 };
-const PAGES: [Image565View; 3] = [CRAB_BEACH, DOG_WALK, CAVE_ART];
-
-async fn run<CydDevice, ButtonDevice, Storage>(
+async fn run<CydDevice, ButtonDevice, FlashBlockDevice>(
     cyd: &mut CydDevice,
-    button: &ButtonDevice,
-    page_storage: &mut Storage,
-) -> Result<Exit, Error<CydDevice::Error, Storage::Error>>
+    calibration_button: &ButtonDevice,
+    page_flash_block: &mut FlashBlockDevice,
+) -> Result<Exit, Error<CydDevice::Error, FlashBlockDevice::Error>>
 where
     CydDevice: Cyd,
     ButtonDevice: Button,
-    Storage: FlashBlock,
+    FlashBlockDevice: FlashBlock,
 {
-    // todo000000 is we really want to presiste the page section? is it a waste of flash lifetime?
-    // TODO000 Does the selected page reliably persist across power cycles and
-    // recover cleanly from invalid stored data?
-    let page = page_storage
-        .load::<Page>()
-        .map_err(Error::Storage)?
-        .filter(|page| usize::from(page.index) < PAGES.len())
-        .unwrap_or_default();
-    let mut page_index = usize::from(page.index);
-    let (display, touch) = cyd.parts();
     // todo0000 we need comments
+    let mut page_index = page_flash_block.load::<PageIndex>()?.unwrap_or_default();
+    let (display, touch) = cyd.parts();
     let mut frame = display.full_frame_mut();
-    // todo0000 shouldn't we use streaming to sent bitmaps?
     DrawItem::Bitmap {
-        view: PAGES[page_index],
+        view: page_index.image(),
         top_left: Point::zero(),
     }
     .draw(&mut frame);
-    frame.flush().await.map_err(Error::Cyd)?;
+    frame.flush().await?;
 
     let mut stroke = None;
     loop {
-        if button.is_pressed() {
+        if calibration_button.is_pressed() {
             return Ok(Exit::CalibrationRequested);
         }
 
-        let Some(touch_event) = touch.try_read().map_err(Error::Cyd)? else {
+        let Some(touch_event) = touch.try_read()? else {
             Timer::after(INPUT_POLL_INTERVAL).await; // todo000 devolve the const
             continue;
         };
         match touch_event {
             TouchEvent::Down { point } if PAGE_TURN.contains(point) => {
                 stroke = None;
-                page_index = (page_index + 1) % PAGES.len();
+                page_index = page_index.next();
                 DrawItem::Bitmap {
-                    view: PAGES[page_index],
+                    view: page_index.image(),
                     top_left: Point::zero(),
                 }
                 .draw(&mut frame);
-                frame.flush().await.map_err(Error::Cyd)?;
-                page_storage
-                    .save(&Page::new(page_index))
-                    .map_err(Error::Storage)?;
+                frame.flush().await?;
+                page_flash_block.save(&page_index)?;
             }
             // todo0000 what's up with Stroke? Could we just have a color?
             TouchEvent::Down { point } => {
@@ -210,7 +197,7 @@ where
                         .draw(&mut frame)
                         .unwrap_infallible();
                     stroke_ref.point = point;
-                    frame.flush().await.map_err(Error::Cyd)?;
+                    frame.flush().await?;
                 }
             }
             TouchEvent::Up => stroke = None,
@@ -219,14 +206,28 @@ where
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
-struct Page {
-    index: u8,
+enum PageIndex {
+    #[default]
+    CrabBeach,
+    DogWalk,
+    CaveArt,
 }
 
-impl Page {
-    fn new(index: usize) -> Self {
-        assert!(index < PAGES.len(), "page index must identify a page");
-        Self { index: index as u8 }
+impl PageIndex {
+    fn next(self) -> Self {
+        match self {
+            Self::CrabBeach => Self::DogWalk,
+            Self::DogWalk => Self::CaveArt,
+            Self::CaveArt => Self::CrabBeach,
+        }
+    }
+
+    fn image(self) -> Image565View {
+        match self {
+            Self::CrabBeach => CRAB_BEACH,
+            Self::DogWalk => DOG_WALK,
+            Self::CaveArt => CAVE_ART,
+        }
     }
 }
 
@@ -235,17 +236,11 @@ struct Stroke {
     color: Rgb565,
 }
 
-#[derive(Debug)]
+#[derive(Debug, derive_more::From)]
 enum Error<CydError, StorageError> {
     Core(device_envoy_core::Error),
     Cyd(CydError),
     Storage(StorageError),
-}
-
-impl<CydError, StorageError> From<device_envoy_core::Error> for Error<CydError, StorageError> {
-    fn from(error: device_envoy_core::Error) -> Self {
-        Self::Core(error)
-    }
 }
 
 #[derive(Debug)]

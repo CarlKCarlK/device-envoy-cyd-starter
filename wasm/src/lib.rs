@@ -52,8 +52,6 @@ const CAVE_ART: Image565View = {
     .to_565();
     IMAGE.view()
 };
-const PAGES: [Image565View; 3] = [CRAB_BEACH, DOG_WALK, CAVE_ART];
-
 const WEB_APP: cyd_web::Config = cyd_web::Config::new(
     "device-envoy/cyd-paint-book",
     Orientation::Landscape,
@@ -78,34 +76,32 @@ pub fn start(canvas_id: &str) -> Result<cyd_web::Handle, wasm_bindgen::JsValue> 
 async fn inner_main(capabilities: cyd_web::Capabilities) -> Result<cyd_web::Command, Error> {
     let mut cyd = capabilities.cyd;
     let button = capabilities.button;
-    let mut page_storage = FlashBlockWasm::new("device-envoy/cyd-paint-book/page")?;
+    let mut page_flash_block = FlashBlockWasm::new("device-envoy/cyd-paint-book/page")?;
 
-    let exit = run(&mut cyd, &button, &mut page_storage).await?;
+    let exit = run(&mut cyd, &button, &mut page_flash_block).await?;
     match exit {
         Exit::CalibrationRequested => Ok(cyd_web::Command::CalibrationNotNeeded),
     }
 }
 
-async fn run<CydDevice, ButtonDevice, Storage>(
+async fn run<CydDevice, ButtonDevice, FlashBlockDevice>(
     cyd: &mut CydDevice,
     button: &ButtonDevice,
-    page_storage: &mut Storage,
-) -> Result<Exit, AppError<CydDevice::Error, Storage::Error>>
+    page_flash_block: &mut FlashBlockDevice,
+) -> Result<Exit, AppError<CydDevice::Error, FlashBlockDevice::Error>>
 where
     CydDevice: Cyd,
     ButtonDevice: Button,
-    Storage: flash_block::FlashBlock,
+    FlashBlockDevice: flash_block::FlashBlock,
 {
-    let page = page_storage
-        .load::<Page>()
+    let mut page_index = page_flash_block
+        .load::<PageIndex>()
         .map_err(AppError::Storage)?
-        .filter(|page| usize::from(page.index) < PAGES.len())
         .unwrap_or_default();
-    let mut page_index = usize::from(page.index);
     let (display, touch) = cyd.parts();
     let mut frame = display.full_frame_mut();
     DrawItem::Bitmap {
-        view: PAGES[page_index],
+        view: page_index.image(),
         top_left: Point::zero(),
     }
     .draw(&mut frame);
@@ -123,15 +119,15 @@ where
         match touch_event {
             TouchEvent::Down { point } if PAGE_TURN.contains(point) => {
                 stroke = None;
-                page_index = (page_index + 1) % PAGES.len();
+                page_index = page_index.next();
                 DrawItem::Bitmap {
-                    view: PAGES[page_index],
+                    view: page_index.image(),
                     top_left: Point::zero(),
                 }
                 .draw(&mut frame);
                 frame.flush().await.map_err(AppError::Cyd)?;
-                page_storage
-                    .save(&Page::new(page_index))
+                page_flash_block
+                    .save(&page_index)
                     .map_err(AppError::Storage)?;
             }
             TouchEvent::Down { point } => {
@@ -153,14 +149,28 @@ where
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
-struct Page {
-    index: u8,
+enum PageIndex {
+    #[default]
+    CrabBeach,
+    DogWalk,
+    CaveArt,
 }
 
-impl Page {
-    fn new(index: usize) -> Self {
-        assert!(index < PAGES.len(), "page index must identify a page");
-        Self { index: index as u8 }
+impl PageIndex {
+    fn next(self) -> Self {
+        match self {
+            Self::CrabBeach => Self::DogWalk,
+            Self::DogWalk => Self::CaveArt,
+            Self::CaveArt => Self::CrabBeach,
+        }
+    }
+
+    fn image(self) -> Image565View {
+        match self {
+            Self::CrabBeach => CRAB_BEACH,
+            Self::DogWalk => DOG_WALK,
+            Self::CaveArt => CAVE_ART,
+        }
     }
 }
 
