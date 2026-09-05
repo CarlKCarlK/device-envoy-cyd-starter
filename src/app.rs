@@ -73,34 +73,35 @@ where
             return Ok(Exit::CalibrationRequested);
         }
 
-        if let Some(touch_event) = touch.try_read().map_err(Error::Cyd)? {
-            match touch_event {
-                TouchEvent::Down { point } if PAGE_TURN.contains(point) => {
-                    stroke = None;
-                    page_index = (page_index + 1) % PAGES.len();
-                    PAGES[page_index].copy_to(&mut frame)?;
-                    frame.flush().await.map_err(Error::Cyd)?;
-                    page_storage
-                        .save(&Page::new(page_index))
-                        .map_err(Error::Storage)?;
-                }
-                TouchEvent::Down { point } => {
-                    stroke = frame.pixel(point).map(|color| Stroke { point, color });
-                }
-                TouchEvent::Move { point } => {
-                    if let Some(stroke_ref) = &mut stroke {
-                        Line::new(stroke_ref.point, point)
-                            .into_styled(PrimitiveStyle::with_stroke(stroke_ref.color, BRUSH_WIDTH))
-                            .draw(&mut frame)
-                            .unwrap_infallible();
-                        stroke_ref.point = point;
-                        frame.flush().await.map_err(Error::Cyd)?;
-                    }
-                }
-                TouchEvent::Up => stroke = None,
+        let Some(touch_event) = touch.try_read().map_err(Error::Cyd)? else {
+            Timer::after(INPUT_POLL_INTERVAL).await;
+            continue;
+        };
+        match touch_event {
+            TouchEvent::Down { point } if PAGE_TURN.contains(point) => {
+                stroke = None;
+                page_index = (page_index + 1) % PAGES.len();
+                PAGES[page_index].copy_to(&mut frame)?;
+                frame.flush().await.map_err(Error::Cyd)?;
+                page_storage
+                    .save(&Page::new(page_index))
+                    .map_err(Error::Storage)?;
             }
+            TouchEvent::Down { point } => {
+                stroke = frame.pixel(point).map(|color| Stroke { point, color });
+            }
+            TouchEvent::Move { point } => {
+                if let Some(stroke_ref) = &mut stroke {
+                    Line::new(stroke_ref.point, point)
+                        .into_styled(PrimitiveStyle::with_stroke(stroke_ref.color, BRUSH_WIDTH))
+                        .draw(&mut frame)
+                        .unwrap_infallible();
+                    stroke_ref.point = point;
+                    frame.flush().await.map_err(Error::Cyd)?;
+                }
+            }
+            TouchEvent::Up => stroke = None,
         }
-        Timer::after(INPUT_POLL_INTERVAL).await;
     }
 }
 
