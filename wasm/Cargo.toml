@@ -20,6 +20,7 @@ derive_more = { version = "2.1.1", default-features = false, features = ["from"]
 embassy-executor = { version = "0.10.0", features = ["platform-wasm", "executor-thread"] }
 embassy-time = { version = "0.5.1", features = ["wasm", "generic-queue-64"] }
 embedded-graphics = { version = "0.8", default-features = false }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Document", "HtmlCanvasElement", "Window", "console"] }

@@ -395,6 +395,7 @@ dependencies = [
  "embassy-executor",
  "embassy-time",
  "embedded-graphics",
+ "serde",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

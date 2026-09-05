@@ -4,7 +4,7 @@ The application embeds three uncompressed 24-bit 320x240 TGA pages:
 
 - `paint-dog-walk.tga`
 - `paint-crab-beach.tga`
-- `paint-caveart.tga`
+- `paint-cave-art.tga`
 
 Their high-resolution editable sources are kept as PNG files. Device Envoy
 converts the TGA pixels to RGB565 at compile time.
