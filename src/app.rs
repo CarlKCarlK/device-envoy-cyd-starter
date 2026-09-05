@@ -29,6 +29,8 @@ const PAGE_TURN: Rectangle = Rectangle::new(Point::new(270, 0), Size::new(50, 45
 const BRUSH_WIDTH: u32 = 7;
 const INPUT_POLL_INTERVAL: Duration = Duration::from_millis(16);
 
+// TODO000 Is too much functionality still concentrated in this file?
+
 const DOG_WALK: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/assets/paint-dog-walk.tga"
@@ -39,6 +41,7 @@ const CRAB_BEACH: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     "/assets/paint-crab-beach.tga"
 ))
 .to_565();
+// todo00 caveart -> cave_art
 const CAVE_ART: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/assets/paint-caveart.tga"
@@ -56,6 +59,9 @@ where
     ButtonDevice: Button,
     Storage: FlashBlock,
 {
+    // todo000000 is we really want to presiste the page section? is it a waste of flash lifetime?
+    // TODO000 Does the selected page reliably persist across power cycles and
+    // recover cleanly from invalid stored data?
     let page = page_storage
         .load::<Page>()
         .map_err(Error::Storage)?
@@ -63,7 +69,9 @@ where
         .unwrap_or_default();
     let mut page_index = usize::from(page.index);
     let (display, touch) = cyd.parts();
+    // todo0000 we need comments
     let mut frame = display.full_frame_mut();
+    // todo0000 shouldn't we use streaming to sent bitmaps?
     PAGES[page_index].copy_to(&mut frame)?;
     frame.flush().await.map_err(Error::Cyd)?;
 
@@ -74,7 +82,7 @@ where
         }
 
         let Some(touch_event) = touch.try_read().map_err(Error::Cyd)? else {
-            Timer::after(INPUT_POLL_INTERVAL).await;
+            Timer::after(INPUT_POLL_INTERVAL).await; // todo000 devolve the const
             continue;
         };
         match touch_event {
@@ -87,11 +95,13 @@ where
                     .save(&Page::new(page_index))
                     .map_err(Error::Storage)?;
             }
+            // todo0000 what's up with Stroke? Could we just have a color?
             TouchEvent::Down { point } => {
                 stroke = frame.pixel(point).map(|color| Stroke { point, color });
             }
             TouchEvent::Move { point } => {
                 if let Some(stroke_ref) = &mut stroke {
+                    // todo000 is it weird I'm not using the streaming API for drawing lines?
                     Line::new(stroke_ref.point, point)
                         .into_styled(PrimitiveStyle::with_stroke(stroke_ref.color, BRUSH_WIDTH))
                         .draw(&mut frame)

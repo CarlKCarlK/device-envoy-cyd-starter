@@ -58,6 +58,8 @@ wasm/                thin browser launcher and simulator shell
 assets/              320x240 TGA pages and editable PNG sources
 ```
 
+TODO0 Explain whether this file split is the clearest structure for a starter.
+
 ## Hardware wiring
 
 The default binary uses the common factory two-SPI wiring:
@@ -112,6 +114,11 @@ just check-all
 
 TODO0 Add browser interaction tests for carrying paint, changing pages, page
 persistence, and the recalibration request before release.
+
+TODO0 Test whether touch-to-display response is fast enough on real hardware.
+TODO0 Verify that the selected page persists across restart and power loss.
+TODO0 Verify that the BOOT/reset recalibration flow works on the target CYD.
+TODO0 Decide whether the background artwork should be made fancier.
 
 TODO0 Replace the copied local `cyd-simulator.js` and `.css` development assets
 with the final supported downstream distribution mechanism, if Device Envoy

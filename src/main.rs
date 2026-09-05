@@ -31,6 +31,9 @@ button_watch! {
     }
 }
 
+// TODO000 Should the one-SPI versus two-SPI choice be a feature instead of a
+// separate example?
+
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
     match inner_main(spawner).await {
@@ -80,9 +83,14 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     .await?;
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
+    // TODO000 This is a little unusual. Would it be clearer to return an
+    // action from the application and process it here?
+    // todo000 is app the right name?
     match app::run(&mut cyd, &*button_watch, &mut page_flash_block).await? {
         app::Exit::CalibrationRequested => {
             calibration_flash_block.clear()?;
+            // TODO000 Is displaying this message on the full frame the right
+            // user experience for recalibration?
             let mut frame = cyd.display().full_frame_mut();
             frame.clear().write_text("Recalibrating after restart");
             frame.flush()?;
@@ -94,6 +102,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
 
 // Derived Debug reads these payloads at runtime, but dead_code analysis ignores
 // derived implementations under -D warnings.
+// TODO000 Explain why this application-level error type is needed here.
 #[derive(derive_more::From)]
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),
@@ -101,6 +110,7 @@ enum Error {
     App(app::Error<cyd::Error, DeviceEnvoyError>),
 }
 
+// TODO00 Is this manual Debug implementation the nicest approach?
 impl fmt::Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
