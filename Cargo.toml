@@ -34,6 +34,7 @@ device-envoy-core = { path = "../device-envoy/crates/device-envoy-core" }
 derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
 embassy-time = "0.5.1"
 embedded-graphics = { version = "0.8", default-features = false }
+heapless = "0.9"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 # TODO0 Replace this local Device Envoy path with its released crates.io version.

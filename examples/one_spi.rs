@@ -15,13 +15,13 @@ use device_envoy_core::{
     flash_block::FlashBlock as _,
 };
 use device_envoy_cyd_starter::app::{
-    self, BACKGROUND_COLOR, FOREGROUND_COLOR, FRAME_PIXEL_COUNT, ORIENTATION,
+    self, APP_FONT, BACKGROUND_COLOR, FOREGROUND_COLOR, FRAME_PIXEL_COUNT, ORIENTATION,
 };
 use device_envoy_esp::{
     Error as DeviceEnvoyError,
     button::PressedTo,
     button_watch,
-    cyd::{self, CydEspOneSpi, CydStaticEsp, DEFAULT_DISPLAY_SPI_HZ, DEFAULT_FONT},
+    cyd::{self, CydEspOneSpi, CydStaticEsp, DEFAULT_DISPLAY_SPI_HZ},
     flash_block::FlashBlockEsp,
     init_and_start,
 };
@@ -75,7 +75,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
         ORIENTATION,
         BACKGROUND_COLOR,
         FOREGROUND_COLOR,
-        &DEFAULT_FONT,
+        &APP_FONT,
         // Calibration storage and recalibration button:
         &mut calibration_flash_block,
         &mut *button_watch,
