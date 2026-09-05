@@ -14,13 +14,22 @@ use embassy_time::{Instant, Timer};
 use embedded_graphics::{
     Drawable,
     geometry::{Point, Size},
-    mono_font::{MonoFont, ascii::FONT_9X15_BOLD},
+    mono_font::{
+        MonoFont, MonoTextStyle,
+        ascii::{FONT_5X7, FONT_9X15_BOLD},
+    },
     pixelcolor::{Rgb565, Rgb888},
-    prelude::Primitive,
+    prelude::{IntoStorage, Primitive},
     primitives::{Line, PrimitiveStyle, Rectangle},
+    text::{Baseline, Text},
 };
 
-const FPS_STATUS_RECTANGLE: Rectangle = Rectangle::new(Point::zero(), Size::new(90, 20));
+const FPS_STATUS_WIDTH: usize = 50;
+const FPS_STATUS_HEIGHT: usize = 8;
+pub const FPS_STATUS_RECTANGLE: Rectangle = Rectangle::new(
+    Point::zero(),
+    Size::new(FPS_STATUS_WIDTH as u32, FPS_STATUS_HEIGHT as u32),
+);
 
 pub const ORIENTATION: Orientation = Orientation::Landscape;
 pub const BACKGROUND_COLOR: Rgb888 = Rgb888::new(246, 235, 204); // warm cream
@@ -82,20 +91,18 @@ impl PageIndex {
     }
 }
 
-pub async fn run<CydDevice, ButtonDevice, FlashBlockDevice>(
+pub async fn run<CydDevice, ButtonDevice, FlashBlockDevice, AppError>(
     cyd: &mut CydDevice,
     calibration_button: &ButtonDevice,
     page_flash_block: &mut FlashBlockDevice,
-) -> Result<Exit, Error<CydDevice::Error, FlashBlockDevice::Error>>
+) -> Result<Exit, AppError>
 where
     CydDevice: Cyd,
     ButtonDevice: Button,
     FlashBlockDevice: FlashBlock,
+    AppError: From<CydDevice::Error> + From<FlashBlockDevice::Error>,
 {
-    let mut page_index = page_flash_block
-        .load::<PageIndex>()
-        .map_err(Error::Storage)?
-        .unwrap_or_default();
+    let mut page_index = page_flash_block.load::<PageIndex>()?.unwrap_or_default();
     let (display, touch) = cyd.parts();
     let mut frame = display.full_frame_mut();
     DrawItem::Bitmap {
@@ -103,7 +110,15 @@ where
         top_left: Point::zero(),
     }
     .draw(&mut frame);
-    draw_fps(&mut frame, BACKGROUND_COLOR.into(), None);
+    let mut fps_visible = true;
+    let mut fps_toggle_touch = false;
+    draw_fps(
+        &mut frame,
+        BACKGROUND_COLOR.into(),
+        FOREGROUND_COLOR.into(),
+        None,
+        fps_visible,
+    );
     frame.flush().await?;
 
     let mut stroke = None;
@@ -117,18 +132,36 @@ where
             match touch_event {
                 TouchEvent::Down { point } if PAGE_TURN.contains(point) => {
                     stroke = None;
+                    fps_toggle_touch = false;
                     page_index = page_index.next();
                     DrawItem::Bitmap {
                         view: page_index.image(),
                         top_left: Point::zero(),
                     }
                     .draw(&mut frame);
-                    page_flash_block.save(&page_index).map_err(Error::Storage)?;
+                    page_flash_block.save(&page_index)?;
+                }
+                TouchEvent::Down { point }
+                    if fps_visible && FPS_STATUS_RECTANGLE.contains(point) =>
+                {
+                    restore_fps(&mut frame, page_index.image());
+                    fps_visible = false;
+                    fps_toggle_touch = false;
+                }
+                TouchEvent::Down { point } if FPS_STATUS_RECTANGLE.contains(point) => {
+                    stroke = None;
+                    fps_toggle_touch = true;
                 }
                 TouchEvent::Down { point } => {
+                    fps_toggle_touch = false;
                     stroke = frame.pixel(point).map(|color| Stroke { point, color });
                 }
                 TouchEvent::Move { point } => {
+                    if fps_toggle_touch {
+                        fps_toggle_touch = false;
+                        stroke = frame.pixel(point).map(|color| Stroke { point, color });
+                        continue;
+                    }
                     if let Some(stroke_ref) = &mut stroke {
                         Line::new(stroke_ref.point, point)
                             .into_styled(PrimitiveStyle::with_stroke(stroke_ref.color, BRUSH_WIDTH))
@@ -137,7 +170,13 @@ where
                         stroke_ref.point = point;
                     }
                 }
-                TouchEvent::Up => stroke = None,
+                TouchEvent::Up => {
+                    if fps_toggle_touch {
+                        fps_visible = true;
+                        fps_toggle_touch = false;
+                    }
+                    stroke = None;
+                }
             }
         }
 
@@ -148,7 +187,9 @@ where
         draw_fps(
             &mut frame,
             BACKGROUND_COLOR.into(),
+            FOREGROUND_COLOR.into(),
             fps_from_elapsed_micros(elapsed_micros),
+            fps_visible,
         );
         frame.flush().await?;
         previous_tick = current_tick;
@@ -159,15 +200,6 @@ where
 #[derive(Debug)]
 pub enum Exit {
     CalibrationRequested,
-}
-
-#[derive(Debug, derive_more::From)]
-pub enum Error<CydError, StorageError> {
-    Cyd(CydError),
-    // `StorageError` is explicit because deriving both generic conversions would
-    // overlap when a device uses the same error type for display and storage.
-    #[from(ignore)]
-    Storage(StorageError),
 }
 
 struct Stroke {
@@ -183,26 +215,54 @@ pub fn fps_from_elapsed_micros(elapsed_micros: u64) -> Option<(u64, u64)> {
     })
 }
 
-pub fn draw_fps<Frame>(frame: &mut Frame, background_color: Rgb565, fps: Option<(u64, u64)>)
-where
+pub fn draw_fps<Frame>(
+    frame: &mut Frame,
+    background_color: Rgb565,
+    foreground_color: Rgb565,
+    fps: Option<(u64, u64)>,
+    visible: bool,
+) where
     Frame: CydFrame,
 {
+    if !visible {
+        return;
+    }
+
     FPS_STATUS_RECTANGLE
         .into_styled(PrimitiveStyle::with_fill(background_color))
         .draw(frame)
         .unwrap_infallible();
 
+    let style = MonoTextStyle::new(&FONT_5X7, foreground_color);
     match fps {
         Some((whole, fraction)) => {
             let mut text = heapless::String::<16>::new();
             if write!(&mut text, "FPS {whole:>3}.{fraction}").is_ok() {
-                frame.write_text(&text);
+                Text::with_baseline(&text, Point::zero(), style, Baseline::Top)
+                    .draw(frame)
+                    .unwrap_infallible();
             } else {
-                frame.write_text("FPS ERROR");
+                Text::with_baseline("FPS ERROR", Point::zero(), style, Baseline::Top)
+                    .draw(frame)
+                    .unwrap_infallible();
             }
         }
         None => {
-            frame.write_text("FPS   --.-");
+            Text::with_baseline("FPS   --.-", Point::zero(), style, Baseline::Top)
+                .draw(frame)
+                .unwrap_infallible();
+        }
+    }
+}
+
+fn restore_fps<Frame>(frame: &mut Frame, original_image: Image565View)
+where
+    Frame: CydFrame,
+{
+    for y in 0..FPS_STATUS_HEIGHT {
+        for x in 0..FPS_STATUS_WIDTH {
+            let original_color = original_image.pixel_at(Point::new(x as i32, y as i32));
+            frame.put_pixel_565(x, y, original_color.into_storage());
         }
     }
 }

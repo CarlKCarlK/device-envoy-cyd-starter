@@ -33,7 +33,12 @@ async fn inner_main(capabilities: cyd_web::Capabilities) -> Result<cyd_web::Comm
     let button = capabilities.button;
     let mut page_flash_block = FlashBlockWasm::new("device-envoy/cyd-paint-book/page")?;
 
-    let exit = device_envoy_cyd_starter::app::run(&mut cyd, &button, &mut page_flash_block).await?;
+    let exit = device_envoy_cyd_starter::app::run::<_, _, _, Error>(
+        &mut cyd,
+        &button,
+        &mut page_flash_block,
+    )
+    .await?;
     match exit {
         device_envoy_cyd_starter::app::Exit::CalibrationRequested => {
             Ok(cyd_web::Command::CalibrationNotNeeded)
@@ -44,19 +49,16 @@ async fn inner_main(capabilities: cyd_web::Capabilities) -> Result<cyd_web::Comm
 #[derive(derive_more::From)]
 enum Error {
     Wasm(wasm::Error),
-    App(
-        device_envoy_cyd_starter::app::Error<
-            core::convert::Infallible,
-            flash_block::Error<wasm::Error>,
-        >,
-    ),
+    Cyd(core::convert::Infallible),
+    Storage(flash_block::Error<wasm::Error>),
 }
 
 impl fmt::Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Wasm(source) => formatter.debug_tuple("Wasm").field(source).finish(),
-            Self::App(source) => formatter.debug_tuple("App").field(source).finish(),
+            Self::Cyd(source) => formatter.debug_tuple("Cyd").field(source).finish(),
+            Self::Storage(source) => formatter.debug_tuple("Storage").field(source).finish(),
         }
     }
 }

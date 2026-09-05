@@ -79,7 +79,9 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
     .await?;
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
-    let exit = app::run(&mut cyd, &*calibration_button_watch, &mut page_flash_block).await?;
+    let exit =
+        app::run::<_, _, _, MainError>(&mut cyd, &*calibration_button_watch, &mut page_flash_block)
+            .await?;
     match exit {
         app::Exit::CalibrationRequested => {
             info!("Clear touch calibration and reset; the paint page selection remains");
@@ -96,7 +98,6 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
 enum MainError {
     DeviceEnvoy(DeviceEnvoyError),
     Cyd(cyd::Error),
-    App(app::Error<cyd::Error, DeviceEnvoyError>),
 }
 
 // TODO00 Is this manual Debug implementation the nicest approach?
@@ -107,7 +108,6 @@ impl fmt::Debug for MainError {
                 formatter.debug_tuple("DeviceEnvoy").field(source).finish()
             }
             Self::Cyd(source) => formatter.debug_tuple("Cyd").field(source).finish(),
-            Self::App(source) => formatter.debug_tuple("App").field(source).finish(),
         }
     }
 }

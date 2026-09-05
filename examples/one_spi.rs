@@ -82,7 +82,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     )
     .await?;
 
-    match app::run(&mut cyd, &*button_watch, &mut page_flash_block).await? {
+    match app::run::<_, _, _, Error>(&mut cyd, &*button_watch, &mut page_flash_block).await? {
         app::Exit::CalibrationRequested => {
             calibration_flash_block.clear()?;
             let mut frame = cyd.display().full_frame_mut();
@@ -99,7 +99,6 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),
     Cyd(cyd::Error),
-    App(app::Error<cyd::Error, DeviceEnvoyError>),
 }
 
 impl fmt::Debug for Error {
@@ -109,7 +108,6 @@ impl fmt::Debug for Error {
                 formatter.debug_tuple("DeviceEnvoy").field(source).finish()
             }
             Self::Cyd(source) => formatter.debug_tuple("Cyd").field(source).finish(),
-            Self::App(source) => formatter.debug_tuple("App").field(source).finish(),
         }
     }
 }
