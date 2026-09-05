@@ -1,11 +1,12 @@
 # Paint Book assets
 
-The application embeds four uncompressed 24-bit 320x240 TGA pages:
+The application embeds five uncompressed 24-bit 320x240 TGA pages:
 
 - `paint-dog-walk.tga`
 - `paint-garden.tga`
 - `paint-ocean.tga`
 - `paint-space.tga`
+- `paint-crab-beach.tga`
 
 Their high-resolution editable sources use corresponding PNG names. Device
 Envoy converts the TGA pixels to RGB565 at compile time.
@@ -29,3 +30,5 @@ were:
 - Ocean: a friendly fish, small octopus, shells, seaweed, bubbles, and waves.
 - Space: a friendly rocket, ringed planet, crescent moon, stars, and a small
   smiling alien.
+- Crab beach: a stylized monochrome crab with sparse modernist linework on a
+  beach, surrounded by the shared six-color paint-pool border.

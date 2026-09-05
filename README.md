@@ -7,8 +7,8 @@ The same application code runs on real hardware and in the browser CYD
 simulator.
 
 Start a stroke on a color and drag it into the picture. Touch the folded corner
-for a fresh dog-walk, garden, ocean, or space page. The selected page survives
-a restart.
+for a fresh dog-walk, garden, ocean, space, or crab-beach page. The selected
+page survives a restart.
 
 ## Run it
 

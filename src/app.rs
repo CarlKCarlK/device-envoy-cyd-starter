@@ -49,7 +49,13 @@ const SPACE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     "/assets/paint-space.tga"
 ))
 .to_565();
-const PAGES: [&Image565Fixed<320, 240, SCREEN_PIXELS>; 4] = [&DOG_WALK, &GARDEN, &OCEAN, &SPACE];
+const CRAB_BEACH: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/paint-crab-beach.tga"
+))
+.to_565();
+const PAGES: [&Image565Fixed<320, 240, SCREEN_PIXELS>; 5] =
+    [&DOG_WALK, &GARDEN, &OCEAN, &SPACE, &CRAB_BEACH];
 
 pub async fn run<CydDevice, ButtonDevice, Storage>(
     cyd: &mut CydDevice,
