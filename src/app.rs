@@ -42,17 +42,20 @@ pub const FOREGROUND_COLOR: Rgb888 = Rgb888::new(238, 244, 236); // warm white
 /// bounded frame uses 32,400 bytes and is also reused by smaller UI regions.
 pub const FRAME_PIXEL_COUNT: usize = 180 * 90;
 
-// TODO0 Replace this temporary Linkage Blaze stand-in with the supplied final
-// Snake artwork. Keep the filename and exact 320×240 uncompressed TGA format.
+// TODO0 (may no longer apply) Replace this generated background if final Snake
+// artwork is supplied. Keep the exact 320×240 uncompressed TGA format.
 const BACKGROUND_FIXED: Image565Fixed<320, 240, { 320 * 240 }> = tga!(
-    concat!(env!("CARGO_MANIFEST_DIR"), "/assets/snake-background.tga"),
+    concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/assets/snake-background-v2.tga"
+    ),
     320,
     240
 )
 .to_565();
 const BACKGROUND: Image565View = BACKGROUND_FIXED.view();
 
-const SCORE_RECTANGLE: Rectangle = Rectangle::new(Point::new(8, 4), Size::new(304, 16));
+const SCORE_RECTANGLE: Rectangle = Rectangle::new(Point::new(5, 4), Size::new(268, 27));
 pub const MODAL_RECTANGLE: Rectangle = Rectangle::new(Point::new(70, 72), Size::new(180, 90));
 const MODAL_ACTION_RECTANGLE: Rectangle = Rectangle::new(Point::new(105, 128), Size::new(110, 26));
 const TICK_INTERVAL: Duration = Duration::from_millis(155);
@@ -60,31 +63,33 @@ const INPUT_POLL_INTERVAL: Duration = Duration::from_millis(20);
 
 const BUTTONS: [(Control, Rectangle, &str); 5] = [
     (
-        Control::Left,
-        Rectangle::new(Point::new(8, 202), Size::new(38, 28)),
-        "<",
-    ),
-    (
         Control::Up,
-        Rectangle::new(Point::new(61, 202), Size::new(38, 28)),
+        Rectangle::new(Point::new(130, 175), Size::new(60, 20)),
         "^",
     ),
     (
-        Control::Down,
-        Rectangle::new(Point::new(114, 202), Size::new(38, 28)),
-        "v",
+        Control::Left,
+        Rectangle::new(Point::new(78, 190), Size::new(53, 27)),
+        "<",
     ),
     (
         Control::Right,
-        Rectangle::new(Point::new(167, 202), Size::new(38, 28)),
+        Rectangle::new(Point::new(189, 190), Size::new(53, 27)),
         ">",
     ),
     (
+        Control::Down,
+        Rectangle::new(Point::new(130, 209), Size::new(60, 27)),
+        "v",
+    ),
+    (
         Control::Pause,
-        Rectangle::new(Point::new(270, 202), Size::new(42, 28)),
-        "II",
+        Rectangle::new(Point::new(276, 4), Size::new(32, 27)),
+        "",
     ),
 ];
+
+//todo000 too much in this file?
 
 const SNAKE_HEAD: Rgb565 = Rgb565::new(8, 63, 12); // vivid lime green
 const SNAKE_BODY: Rgb565 = Rgb565::new(3, 44, 12); // leaf green
@@ -105,6 +110,7 @@ where
     Storage: FlashBlock,
 {
     let mut high_score = load_high_score(high_score_storage).map_err(Error::Storage)?;
+    // todo000 is Game needed?
     let mut game = Game::new();
     let (display, touch) = cyd.parts();
     draw_complete_scene(display, &game, high_score, None).await?;
@@ -327,25 +333,13 @@ async fn draw_score<Display>(
 where
     Display: CydDisplay,
 {
-    let mut score_text = heapless::String::<48>::new();
-    write!(
-        score_text,
-        "SCORE {:04}                 HIGH {:04}",
-        game.score(),
-        high_score.value()
-    )?;
     let mut frame = display.frame_mut(SCORE_RECTANGLE);
     DrawItem::Bitmap {
         view: BACKGROUND,
         top_left: Point::zero(),
     }
     .draw(&mut frame);
-    draw_text(
-        &mut frame,
-        score_text.as_str(),
-        SCORE_RECTANGLE.top_left,
-        Alignment::Left,
-    );
+    draw_scores(&mut frame, game, high_score)?;
     frame.flush().await.map_err(RenderError::Cyd)
 }
 
@@ -357,13 +351,14 @@ where
     Display: CydDisplay,
 {
     for (control, rectangle, label) in BUTTONS {
-        draw_button(display, rectangle, label, pressed == Some(control)).await?;
+        draw_button(display, control, rectangle, label, pressed == Some(control)).await?;
     }
     Ok(())
 }
 
 async fn draw_button<Display>(
     display: &mut Display,
+    control: Control,
     rectangle: Rectangle,
     label: &str,
     pressed: bool,
@@ -372,22 +367,23 @@ where
     Display: CydDisplay,
 {
     let mut frame = display.frame_mut(rectangle);
-    frame.fill(if pressed { BUTTON_PRESSED } else { BUTTON_FILL });
-    rectangle
-        .into_styled(
-            PrimitiveStyleBuilder::new()
-                .stroke_color(OUTLINE)
-                .stroke_width(2)
-                .build(),
-        )
-        .draw(&mut frame)
-        .unwrap_infallible();
-    draw_text(
-        &mut frame,
-        label,
-        rectangle.center() - Point::new(0, 4),
-        Alignment::Center,
-    );
+    DrawItem::Bitmap {
+        view: BACKGROUND,
+        top_left: Point::zero(),
+    }
+    .draw(&mut frame);
+    if pressed {
+        rectangle
+            .into_styled(
+                PrimitiveStyleBuilder::new()
+                    .stroke_color(BUTTON_PRESSED)
+                    .stroke_width(2)
+                    .build(),
+            )
+            .draw(&mut frame)
+            .unwrap_infallible();
+    }
+    draw_control_symbol(&mut frame, control, rectangle, label);
     frame.flush().await.map_err(RenderError::Cyd)
 }
 
@@ -466,36 +462,70 @@ where
         .into_styled(PrimitiveStyle::with_fill(FOOD))
         .draw(frame)
         .unwrap_infallible();
-    let mut score_text = heapless::String::<48>::new();
-    write!(
-        score_text,
-        "SCORE {:04}                 HIGH {:04}",
-        game.score(),
-        high_score.value()
-    )?;
-    draw_text(
-        frame,
-        score_text.as_str(),
-        SCORE_RECTANGLE.top_left,
-        Alignment::Left,
-    );
+    draw_scores(frame, game, high_score)?;
     for (control, rectangle, label) in BUTTONS {
-        rectangle
-            .into_styled(PrimitiveStyle::with_fill(if pressed == Some(control) {
-                BUTTON_PRESSED
-            } else {
-                BUTTON_FILL
-            }))
-            .draw(frame)
+        if pressed == Some(control) {
+            rectangle
+                .into_styled(PrimitiveStyle::with_stroke(BUTTON_PRESSED, 2))
+                .draw(frame)
+                .unwrap_infallible();
+        }
+        draw_control_symbol(frame, control, rectangle, label);
+    }
+    Ok(())
+}
+
+fn draw_scores<Target>(target: &mut Target, game: &Game, high_score: HighScore) -> fmt::Result
+where
+    Target: embedded_graphics::draw_target::DrawTarget<Color = Rgb565, Error = Infallible>,
+{
+    let mut score_text = heapless::String::<16>::new();
+    write!(score_text, "SCORE {:04}", game.score())?;
+    draw_text(
+        target,
+        score_text.as_str(),
+        Point::new(74, 12),
+        Alignment::Center,
+    );
+
+    let mut high_score_text = heapless::String::<16>::new();
+    write!(high_score_text, "HIGH {:04}", high_score.value())?;
+    draw_text(
+        target,
+        high_score_text.as_str(),
+        Point::new(210, 12),
+        Alignment::Center,
+    );
+    Ok(())
+}
+
+fn draw_control_symbol<Target>(
+    target: &mut Target,
+    control: Control,
+    rectangle: Rectangle,
+    label: &str,
+) where
+    Target: embedded_graphics::draw_target::DrawTarget<Color = Rgb565, Error = Infallible>,
+{
+    if control == Control::Pause {
+        let center = rectangle.center();
+        for offset_x in [-4, 2] {
+            Rectangle::new(
+                Point::new(center.x + offset_x, center.y - 5),
+                Size::new(3, 11),
+            )
+            .into_styled(PrimitiveStyle::with_fill(Rgb565::WHITE))
+            .draw(target)
             .unwrap_infallible();
+        }
+    } else {
         draw_text(
-            frame,
+            target,
             label,
             rectangle.center() - Point::new(0, 4),
             Alignment::Center,
         );
     }
-    Ok(())
 }
 
 fn draw_text<Target>(target: &mut Target, text: &str, position: Point, alignment: Alignment)

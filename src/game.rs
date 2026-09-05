@@ -6,7 +6,7 @@ use embedded_graphics::{
 };
 
 pub const CELL_SIZE: i32 = 10;
-pub const PLAYFIELD: Rectangle = Rectangle::new(Point::new(5, 24), Size::new(310, 210));
+pub const PLAYFIELD: Rectangle = Rectangle::new(Point::new(4, 33), Size::new(312, 141));
 const BORDER_SIZE: i32 = 5;
 pub const COLUMN_COUNT: i16 = ((PLAYFIELD.size.width as i32 - BORDER_SIZE * 2) / CELL_SIZE) as i16;
 pub const ROW_COUNT: i16 = ((PLAYFIELD.size.height as i32 - BORDER_SIZE * 2) / CELL_SIZE) as i16;
@@ -210,7 +210,7 @@ mod tests {
     #[test]
     fn playfield_and_grid_share_one_boundary_definition() {
         assert_eq!(COLUMN_COUNT, 30);
-        assert_eq!(ROW_COUNT, 20);
+        assert_eq!(ROW_COUNT, 13);
         assert!(Cell::new(0, 0).rectangle().top_left.x > PLAYFIELD.top_left.x);
         assert!(!Cell::new(-1, 0).is_inside());
         assert!(!Cell::new(COLUMN_COUNT, 0).is_inside());

@@ -3,6 +3,25 @@
 A real downstream-style Device Envoy application: one portable Snake game and
 UI runs on a classic ESP32 Cheap Yellow Display and in a browser CYD simulator.
 
+## Run the browser demo
+
+From this repository, build and serve the demo with:
+
+```sh
+just demo-wasm
+```
+
+Open <http://127.0.0.1:8092/>. Press Ctrl-C to stop the server.
+
+## Run on a CYD
+
+Connect a factory-wired classic ESP32 CYD over USB, then build, flash, and run
+the demo with:
+
+```sh
+just demo-cyd
+```
+
 TODO0 This development repository intentionally uses local Device Envoy path
 dependencies while the application exercises the evolving APIs. Replace every
 local path with released crate versions and regenerate `Cargo.lock` before the
@@ -38,20 +57,46 @@ assets/              compile-time 320×240 TGA background
 
 ## Toolchain
 
-Install Rust 1.93 or newer, the Xtensa ESP Rust toolchain, `espflash`,
-`wasm32-unknown-unknown`, and `wasm-pack`. The adjacent local Device Envoy
-checkout is currently expected at `../device-envoy`.
+Install Rust 1.93 or newer. Then install the Xtensa ESP Rust toolchain:
+
+```sh
+cargo install espup
+espup install
+```
+
+`just demo-cyd` activates the installed ESP environment automatically. Before
+running ESP Cargo commands directly, activate it in your current shell:
+
+```sh
+source "$HOME/export-esp.sh"
+```
+
+Install the flashing tool:
+
+```sh
+cargo install espflash
+```
+
+The browser demo additionally requires `wasm32-unknown-unknown` and
+`wasm-pack`. The adjacent local Device Envoy checkout is currently expected at
+`../device-envoy`.
 
 TODO0 Replace this local-checkout instruction with crates.io dependency setup.
 
 ## Classic CYD: default two-SPI build
 
-The default target is the original ESP32 CYD in landscape orientation. Build
-or flash it with:
+The default target is the original ESP32 CYD in landscape orientation. To build
+without flashing:
 
 ```sh
-cargo build --release --target xtensa-esp32-none-elf
-cargo run --release --target xtensa-esp32-none-elf
+cargo +esp build --release --target xtensa-esp32-none-elf \
+    --no-default-features --features esp32 -Zbuild-std=core,alloc
+```
+
+To build, flash, and run:
+
+```sh
+just demo-cyd
 ```
 
 The constructor uses the common factory wiring:
@@ -89,14 +134,14 @@ TODO0 Document and photograph the validated physical one-SPI modification.
 ## Browser/WASM
 
 ```sh
-wasm-pack build wasm --target web --out-dir pkg
-python3 -m http.server 8092 --directory wasm
+just demo-wasm
 ```
 
-Open <http://127.0.0.1:8092/www/>. The launcher constructs `CydWasm`; the
-canonical Device Envoy browser shell forwards pointer input into its touch
-source. The portable application still reads only `CydTouch`. `FlashBlockWasm`
-stores the high score in browser local storage under
+The recipe builds the WASM package, prints the browser URL, and starts the local
+server. The launcher constructs `CydWasm`; the canonical Device Envoy browser
+shell forwards pointer input into its touch source. The portable application
+still reads only `CydTouch`. `FlashBlockWasm` stores the high score in browser
+local storage under
 `device-envoy/cyd-snake/high-score`.
 
 TODO0 Replace the copied local `cyd-simulator.js` and `.css` development assets
@@ -111,4 +156,7 @@ just check-all
 
 TODO0 Add browser interaction tests for direction pressed states, pause/resume,
 game over/play again, and high-score persistence before release.
-
+todo0 background should be fanicer
+todo0 seems slow to respond
+does high score persist?
+does reset button work?

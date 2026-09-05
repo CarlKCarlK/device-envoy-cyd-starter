@@ -24,18 +24,19 @@ use log::info;
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
+// todo000 explain what this is for
 button_watch! {
     ButtonWatch {
         pin: GPIO0,
     }
 }
 
+// todo000 have a feature for 1 spi vs 2?
+
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
-    match inner_main(spawner).await {
-        Ok(never) => match never {},
-        Err(error) => panic!("{error:?}"),
-    }
+    let err = inner_main(spawner).await.unwrap_err();
+    panic!("{err:?}");
 }
 
 async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
@@ -81,9 +82,11 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     .await?;
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
+    // todo000 this is weird. Nicer to get the return value and process it.
     match app::run(&mut cyd, &mut *button_watch, &mut high_score_flash_block).await? {
         app::Exit::CalibrationRequested => {
             calibration_flash_block.clear()?;
+            // todo000 yikes "modal"
             let mut frame = cyd.display().frame_mut(app::MODAL_RECTANGLE);
             frame.clear().write_text("Recalibrating after restart");
             frame.flush()?;
@@ -93,6 +96,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     }
 }
 
+// todo000 explain this
 #[derive(derive_more::From)]
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),
@@ -100,6 +104,7 @@ enum Error {
     App(app::Error<cyd::Error, DeviceEnvoyError>),
 }
 
+// todo00 is this nice?
 impl fmt::Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -111,3 +116,4 @@ impl fmt::Debug for Error {
         }
     }
 }
+// todo000 why multiple *.rs files?
