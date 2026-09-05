@@ -1,15 +1,13 @@
 # Paint Book assets
 
-The application embeds five uncompressed 24-bit 320x240 TGA pages:
+The application embeds three uncompressed 24-bit 320x240 TGA pages:
 
 - `paint-dog-walk.tga`
-- `paint-garden.tga`
-- `paint-ocean.tga`
-- `paint-space.tga`
 - `paint-crab-beach.tga`
+- `paint-caveart.tga`
 
-Their high-resolution editable sources use corresponding PNG names. Device
-Envoy converts the TGA pixels to RGB565 at compile time.
+Their high-resolution editable sources are kept as PNG files. Device Envoy
+converts the TGA pixels to RGB565 at compile time.
 
 `dog_walk.png` is the original dog-walk illustration. The page-ready
 `dog-walk-page-source.png` was made from it with OpenAI's built-in image editing
@@ -17,7 +15,7 @@ tool using this prompt: preserve the original illustration exactly and add only
 a folded top-right page corner with a right-pointing arrow; add no text, logo,
 signature, or watermark.
 
-The other three sources were generated for this repository with OpenAI's
+The garden, ocean, and space sources were generated for this repository with OpenAI's
 built-in image generation tool. The shared prompt requested a polished
 children's paint-book illustration in a 4:3 landscape composition, with a warm
 cream central page, large high-contrast outlines, tactile gouache and watercolor

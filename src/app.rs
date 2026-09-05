@@ -34,28 +34,17 @@ const DOG_WALK: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     "/assets/paint-dog-walk.tga"
 ))
 .to_565();
-const GARDEN: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/paint-garden.tga"
-))
-.to_565();
-const OCEAN: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/paint-ocean.tga"
-))
-.to_565();
-const SPACE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/paint-space.tga"
-))
-.to_565();
 const CRAB_BEACH: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/assets/paint-crab-beach.tga"
 ))
 .to_565();
-const PAGES: [&Image565Fixed<320, 240, SCREEN_PIXELS>; 5] =
-    [&DOG_WALK, &GARDEN, &OCEAN, &SPACE, &CRAB_BEACH];
+const CAVE_ART: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/assets/paint-caveart.tga"
+))
+.to_565();
+const PAGES: [&Image565Fixed<320, 240, SCREEN_PIXELS>; 3] = [&CRAB_BEACH, &DOG_WALK, &CAVE_ART];
 
 pub async fn run<CydDevice, ButtonDevice, Storage>(
     cyd: &mut CydDevice,

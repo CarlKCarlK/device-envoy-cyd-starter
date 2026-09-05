@@ -7,7 +7,7 @@ The same application code runs on real hardware and in the browser CYD
 simulator.
 
 Start a stroke on a color and drag it into the picture. Touch the folded corner
-for a fresh dog-walk, garden, ocean, space, or crab-beach page. The selected
+to switch between the crab-beach, dog-walk, and cave-art pages. The selected
 page survives a restart.
 
 ## Run it
