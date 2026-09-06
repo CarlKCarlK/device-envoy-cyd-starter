@@ -101,7 +101,7 @@ where
         match touch.try_read()? {
             // When there is no new touch input,
             None => {
-                // wait 16 millis and then go up and look for a touch input again.
+                // Avoid repeatedly flushing the display while idle.
                 Timer::after_millis(16).await;
                 continue;
             }

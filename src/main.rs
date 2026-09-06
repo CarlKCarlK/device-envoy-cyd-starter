@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::{convert::Infallible, fmt};
+use core::convert::Infallible;
 
 use device_envoy_cyd_starter::app::{self, BACKGROUND_COLOR, FONT, FOREGROUND_COLOR, ORIENTATION};
 use device_envoy_esp::{
@@ -32,7 +32,8 @@ button_watch! {
 async fn main(spawner: Spawner) -> ! {
     match inner_main(spawner).await {
         Ok(never) => match never {},
-        Err(error) => panic!("{error:?}"),
+        Err(Error::DeviceEnvoy(source)) => panic!("DeviceEnvoy({source:?})"),
+        Err(Error::Cyd(source)) => panic!("Cyd({source:?})"),
     }
 }
 
@@ -89,23 +90,8 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     }
 }
 
-// Derived Debug reads these payloads at runtime, but dead_code analysis ignores
-// derived implementations under -D warnings.
-// TODO000 Explain why this application-level error type is needed here.
-#[derive(derive_more::From)]
+#[derive(Debug, derive_more::From)]
 enum Error {
     DeviceEnvoy(DeviceEnvoyError),
     Cyd(cyd::Error),
-}
-
-// TODO00 Is this manual Debug implementation the nicest approach?
-impl fmt::Debug for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::DeviceEnvoy(source) => {
-                formatter.debug_tuple("DeviceEnvoy").field(source).finish()
-            }
-            Self::Cyd(source) => formatter.debug_tuple("Cyd").field(source).finish(),
-        }
-    }
 }
