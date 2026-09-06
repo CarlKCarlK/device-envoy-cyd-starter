@@ -8,7 +8,7 @@ use device_envoy_esp::{
     Error as DeviceEnvoyError,
     button::PressedTo,
     button_watch,
-    cyd::{self, CydEsp, CydStaticEsp, DEFAULT_DISPLAY_SPI_HZ},
+    cyd::{self, CydEsp, CydStaticEsp, DEFAULT_DISPLAY_SPI_HZ, NoDisplayReset},
     flash_block::{FlashBlock, FlashBlockEsp},
     init_and_start,
 };
@@ -55,7 +55,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
         p.GPIO12,
         p.GPIO15,
         p.GPIO2,
-        p.GPIO4,
+        NoDisplayReset,
         p.GPIO21,
         DEFAULT_DISPLAY_SPI_HZ,
         // Presentation:

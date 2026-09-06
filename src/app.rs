@@ -3,7 +3,7 @@ use device_envoy_core::{
     button::Button,
     cyd::{
         Cyd, CydDisplay, CydTouch, SCREEN_PIXELS,
-        display::{CydFrame, DrawItem, Image565Fixed, Image565View, Orientation, tga},
+        display::{CydFrame, DrawItem, GetPixel, Image565Fixed, Image565View, Orientation, tga},
         touch::TouchEvent,
     },
     flash_block::FlashBlock,
