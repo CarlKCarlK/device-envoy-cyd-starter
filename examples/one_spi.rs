@@ -14,9 +14,7 @@ use device_envoy_core::{
     cyd::{Cyd as _, CydDisplay, display::CydFrame},
     flash_block::FlashBlock as _,
 };
-use device_envoy_cyd_starter::app::{
-    self, APP_FONT, BACKGROUND_COLOR, FOREGROUND_COLOR, FRAME_PIXEL_COUNT, ORIENTATION,
-};
+use device_envoy_cyd_starter::app::{self, BACKGROUND_COLOR, FONT, FOREGROUND_COLOR, ORIENTATION};
 use device_envoy_esp::{
     Error as DeviceEnvoyError,
     button::PressedTo,
@@ -54,7 +52,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
         FlashBlockEsp::new_array::<2>(p.FLASH)?;
     let button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
-    static CYD_STATIC: CydStaticEsp<FRAME_PIXEL_COUNT> = CydEspOneSpi::new_static();
+    static CYD_STATIC: CydStaticEsp<{ CydEspOneSpi::SCREEN_PIXELS }> = CydEspOneSpi::new_static();
     let mut cyd = CydEspOneSpi::new(
         &CYD_STATIC,
         // Shared display/touch SPI signals after the required wiring change:
@@ -75,7 +73,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
         ORIENTATION,
         BACKGROUND_COLOR,
         FOREGROUND_COLOR,
-        &APP_FONT,
+        &FONT,
         // Calibration storage and recalibration button:
         &mut calibration_flash_block,
         &mut *button_watch,

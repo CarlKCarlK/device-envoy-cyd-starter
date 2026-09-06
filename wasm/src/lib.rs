@@ -4,7 +4,7 @@ use device_envoy_core::{
     flash_block,
     wasm::{self, FlashBlockWasm, cyd_web},
 };
-use device_envoy_cyd_starter::app::{APP_FONT, BACKGROUND_COLOR, FOREGROUND_COLOR, ORIENTATION};
+use device_envoy_cyd_starter::app::{BACKGROUND_COLOR, FONT, FOREGROUND_COLOR, ORIENTATION};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 const WEB_APP: cyd_web::Config = cyd_web::Config::new(
@@ -12,7 +12,7 @@ const WEB_APP: cyd_web::Config = cyd_web::Config::new(
     ORIENTATION,
     BACKGROUND_COLOR,
     FOREGROUND_COLOR,
-    &APP_FONT,
+    &FONT,
 );
 
 const PAGE_INFO: cyd_web::PageInfo = cyd_web::PageInfo::new(

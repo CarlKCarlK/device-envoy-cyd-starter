@@ -3,9 +3,7 @@
 
 use core::{convert::Infallible, fmt};
 
-use device_envoy_cyd_starter::app::{
-    self, APP_FONT, BACKGROUND_COLOR, FOREGROUND_COLOR, FRAME_PIXEL_COUNT, ORIENTATION,
-};
+use device_envoy_cyd_starter::app::{self, BACKGROUND_COLOR, FONT, FOREGROUND_COLOR, ORIENTATION};
 use device_envoy_esp::{
     Error as DeviceEnvoyError,
     button::PressedTo,
@@ -38,7 +36,7 @@ async fn main(spawner: Spawner) -> ! {
     }
 }
 
-async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
+async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     init_and_start!(p);
     esp_println::logger::init_logger(log::LevelFilter::Info);
     info!("Starting Device Envoy Paint Book on the classic two-SPI CYD");
@@ -47,7 +45,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
         FlashBlockEsp::new_array::<2>(p.FLASH)?;
     let calibration_button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
-    static CYD_STATIC: CydStaticEsp<FRAME_PIXEL_COUNT> = CydEsp::new_static();
+    static CYD_STATIC: CydStaticEsp<{ CydEsp::SCREEN_PIXELS }> = CydEsp::new_static();
     let mut cyd = CydEsp::new(
         &CYD_STATIC,
         // Display SPI and pins (factory classic CYD wiring):
@@ -64,7 +62,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
         ORIENTATION,
         BACKGROUND_COLOR,
         FOREGROUND_COLOR,
-        &APP_FONT,
+        &FONT,
         // Touch SPI and pins (factory classic CYD wiring):
         p.SPI3,
         p.GPIO25,
@@ -80,7 +78,7 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
     info!("CYD initialized; touch coordinates are calibrated and landscape-oriented");
 
     let exit =
-        app::run::<_, _, _, MainError>(&mut cyd, &*calibration_button_watch, &mut page_flash_block)
+        app::run::<_, _, _, Error>(&mut cyd, &*calibration_button_watch, &mut page_flash_block)
             .await?;
     match exit {
         app::Exit::CalibrationRequested => {
@@ -95,13 +93,13 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, MainError> {
 // derived implementations under -D warnings.
 // TODO000 Explain why this application-level error type is needed here.
 #[derive(derive_more::From)]
-enum MainError {
+enum Error {
     DeviceEnvoy(DeviceEnvoyError),
     Cyd(cyd::Error),
 }
 
 // TODO00 Is this manual Debug implementation the nicest approach?
-impl fmt::Debug for MainError {
+impl fmt::Debug for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::DeviceEnvoy(source) => {

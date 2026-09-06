@@ -14,19 +14,19 @@ use embedded_graphics::{
     geometry::{Point, Size},
     mono_font::{MonoFont, ascii::FONT_9X15_BOLD},
     pixelcolor::Rgb888,
-    prelude::Primitive,
+    prelude::{Primitive, WebColors},
     primitives::{Line, PrimitiveStyle, Rectangle},
 };
 
 pub const ORIENTATION: Orientation = Orientation::Landscape;
-pub const BACKGROUND_COLOR: Rgb888 = Rgb888::new(246, 235, 204); // warm cream
+pub const BACKGROUND_COLOR: Rgb888 = Rgb888::CSS_BLANCHED_ALMOND;
 pub const FOREGROUND_COLOR: Rgb888 = Rgb888::new(39, 28, 23); // dark brown
-pub const APP_FONT: MonoFont<'static> = FONT_9X15_BOLD;
-pub const FRAME_PIXEL_COUNT: usize = SCREEN_PIXELS;
-pub const PAGE_TURN: Rectangle = Rectangle::new(Point::new(270, 0), Size::new(50, 45));
-pub const BRUSH_WIDTH: u32 = 7;
+pub const FONT: MonoFont<'static> = FONT_9X15_BOLD;
 
-pub const DOG_WALK: Image565View = {
+const PAGE_TURN_RECTANGLE: Rectangle = Rectangle::new(Point::new(270, 0), Size::new(50, 45));
+const BRUSH_WIDTH: u32 = 7;
+
+const DOG_WALK: Image565View = {
     const IMAGE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/assets/paint-dog-walk.tga"
@@ -34,7 +34,7 @@ pub const DOG_WALK: Image565View = {
     .to_565();
     IMAGE.view()
 };
-pub const CRAB_BEACH: Image565View = {
+const CRAB_BEACH: Image565View = {
     const IMAGE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/assets/paint-crab-beach.tga"
@@ -42,7 +42,7 @@ pub const CRAB_BEACH: Image565View = {
     .to_565();
     IMAGE.view()
 };
-pub const CAVE_ART: Image565View = {
+const CAVE_ART: Image565View = {
     const IMAGE: Image565Fixed<320, 240, SCREEN_PIXELS> = tga!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/assets/paint-cave-art.tga"
@@ -62,21 +62,42 @@ where
     FlashBlockDevice: FlashBlock,
     AppError: From<CydDevice::Error> + From<FlashBlockDevice::Error>,
 {
-    let mut page = page_flash_block.load::<Page>()?.unwrap_or_default();
+    // Split the CYD into its display and touch components.
     let (display, touch) = cyd.parts();
+
+    // For ease of use, create a full frame buffer for the display.
+    // (When memory is tighter, the library supports smaller buffers, tiling, and streaming pixels.)
     let mut frame = display.full_frame_mut();
+
+    // Which coloring book page should we start with? Read a variant from the flash block.
+    // If empty or the flash block contains the wrong type, default to the first page.
+    let mut page = page_flash_block.load::<Page>()?.unwrap_or_default();
+
+
+    // Draw the first page's bitmap to the frame buffer and flush it to the display.
     DrawItem::Bitmap {
         view: page.bitmap(),
         top_left: Point::zero(),
     }
     .draw(&mut frame);
     frame.flush().await?;
+
+
+    // Keep track of the previous touch point for drawing lines.
     let mut previous_point = None;
+
+    // Start the "game" loop.
     loop {
+
+        // User must always be able to recalibrate the touch screen.
+        // If the user presses the button on the back of the CYD, exit this function
+        // and return to the hardware-specific caller.
         if calibration_button.is_pressed() {
             return Ok(Exit::CalibrationRequested);
         }
 
+        // Read the next touch event if any. This never blocks; it returns immediately.
+        // Use a match statement to handle the different types of touch events.
         match touch.try_read()? {
             // When there is no new touch input,
             None => {
@@ -85,7 +106,7 @@ where
                 continue;
             }
             // When a touch begins in the page-turn area,
-            Some(TouchEvent::Down { point }) if PAGE_TURN.contains(point) => {
+            Some(TouchEvent::Down { point }) if PAGE_TURN_RECTANGLE.contains(point) => {
                 // clear the previous touch point and advance to the next page.
                 previous_point = None;
                 page = page.next();
@@ -121,13 +142,13 @@ where
             }
         }
 
-        // We always flush the frame to the hardware.
+        // Flush the frame buffer to the display.
         frame.flush().await?;
     }
 }
 
 #[derive(Clone, Copy, Debug, Default, serde::Deserialize, serde::Serialize)]
-pub enum Page {
+enum Page {
     #[default]
     CrabBeach,
     DogWalk,
@@ -135,7 +156,7 @@ pub enum Page {
 }
 
 impl Page {
-    pub fn next(self) -> Self {
+    fn next(self) -> Self {
         match self {
             Self::CrabBeach => Self::DogWalk,
             Self::DogWalk => Self::CaveArt,
@@ -143,7 +164,7 @@ impl Page {
         }
     }
 
-    pub fn bitmap(self) -> Image565View {
+    fn bitmap(self) -> Image565View {
         match self {
             Self::CrabBeach => CRAB_BEACH,
             Self::DogWalk => DOG_WALK,
