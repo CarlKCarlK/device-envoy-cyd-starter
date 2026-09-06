@@ -25,9 +25,6 @@ button_watch! {
     }
 }
 
-// TODO000 Should the one-SPI versus two-SPI choice be a feature instead of a
-// separate example?
-
 #[esp_rtos::main]
 async fn main(spawner: Spawner) -> ! {
     match inner_main(spawner).await {
@@ -47,6 +44,8 @@ async fn inner_main(spawner: Spawner) -> Result<Infallible, Error> {
     let calibration_button_watch = ButtonWatch::new(p.GPIO0, PressedTo::Ground, spawner).await?;
 
     static CYD_STATIC: CydStaticEsp<{ CydEsp::SCREEN_PIXELS }> = CydEsp::new_static();
+    // The factory CYD uses separate SPI resources for display and touch.
+    // Device Envoy also offers CydEspOneSpi::new for custom shared-bus hardware.
     let mut cyd = CydEsp::new(
         &CYD_STATIC,
         // Display SPI and pins (factory classic CYD wiring):

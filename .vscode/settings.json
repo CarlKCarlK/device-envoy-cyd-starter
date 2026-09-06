@@ -1,0 +1,39 @@
+{
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.server.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "esp"
+    },
+    "rust-analyzer.cargo.buildScripts.overrideCommand": [
+        "cargo",
+        "+esp",
+        "check",
+        "--bin",
+        "device-envoy-cyd-starter",
+        "--target",
+        "xtensa-esp32-none-elf",
+        "--features",
+        "esp32",
+        "--release",
+        "-Zbuild-std=core,alloc",
+        "--message-format=json"
+    ],
+    "rust-analyzer.cargo.features": [
+        "esp32"
+    ],
+    "rust-analyzer.cargo.target": "xtensa-esp32-none-elf",
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.check.overrideCommand": [
+        "cargo",
+        "+esp",
+        "check",
+        "--bin",
+        "device-envoy-cyd-starter",
+        "--target",
+        "xtensa-esp32-none-elf",
+        "--features",
+        "esp32",
+        "--release",
+        "-Zbuild-std=core,alloc",
+        "--message-format=json"
+    ]
+}

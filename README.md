@@ -43,7 +43,7 @@ device restarts.
 - compile-time TGA-to-RGB565 bitmap assets;
 - typed flash storage for the current page;
 - one portable application shared by ESP32 and WASM;
-- explicit hardware construction for two-SPI and one-SPI CYD wiring.
+- explicit hardware construction for the factory CYD wiring.
 
 The framebuffer itself is the painting. On touch-down, the app reads that
 pixel's color; touch movement draws a thick line with the carried color. This
@@ -55,11 +55,10 @@ modal state, dirty-region renderer, or game engine.
 ## Repository layout
 
 ```text
-src/app.rs           shared state, touch loop, bitmap pages, and drawing
-src/main.rs          factory classic-CYD hardware construction
-examples/one_spi.rs  alternate physically shared-SPI construction
-wasm/                thin browser launcher and simulator shell
-assets/              320x240 TGA pages and editable PNG sources
+src/app.rs   shared state, touch loop, bitmap pages, and drawing
+src/main.rs  factory classic-CYD hardware construction
+wasm/        thin browser launcher and simulator shell
+assets/      320x240 TGA pages and editable PNG sources
 ```
 
 TODO0 Explain whether this file split is the clearest structure for a starter.
@@ -78,19 +77,6 @@ The default binary uses the common factory two-SPI wiring:
 
 TODO0 Verify this exact table on the intended classic CYD hardware revision
 before release; clone boards sometimes differ.
-
-The shared-SPI example is for a board that actually routes display and touch
-through the same SCK, MOSI, and MISO signals:
-
-```sh
-cargo +esp build --release --example one_spi \
-    --target xtensa-esp32-none-elf -Zbuild-std=core,alloc
-```
-
-Selecting this example does not alter factory wiring. Retain independent chip
-select pins when modifying or wiring the board for a shared bus.
-
-TODO0 Document and photograph the validated physical one-SPI modification.
 
 ## Toolchain
 
@@ -115,14 +101,6 @@ regenerate `Cargo.lock` before release.
 ```sh
 just check-all
 ```
-
-TODO0 Add browser interaction tests for carrying paint, changing pages, page
-persistence, and the recalibration request before release.
-
-TODO0 Test whether touch-to-display response is fast enough on real hardware.
-TODO0 Verify that the selected page persists across restart and power loss.
-TODO0 Verify that the BOOT/reset recalibration flow works on the target CYD.
-TODO0 Decide whether the background artwork should be made fancier.
 
 TODO0 Replace the copied local `cyd-simulator.js` and `.css` development assets
 with the final supported downstream distribution mechanism, if Device Envoy

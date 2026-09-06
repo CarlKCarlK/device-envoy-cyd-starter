@@ -6,9 +6,6 @@ check-host:
 check-esp:
     cargo +esp check --bin device-envoy-cyd-starter --target xtensa-esp32-none-elf --features esp32 --release -Zbuild-std=core,alloc
 
-check-one-spi:
-    cargo +esp check --example one_spi --target xtensa-esp32-none-elf --features esp32 --release -Zbuild-std=core,alloc
-
 demo-cyd:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -30,4 +27,4 @@ demo-wasm: build-wasm
 serve-wasm:
     python3 -m http.server 8092 --directory wasm
 
-check-all: check-host check-esp check-one-spi build-wasm
+check-all: check-host check-esp build-wasm

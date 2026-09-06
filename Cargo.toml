@@ -54,11 +54,6 @@ name = "device-envoy-cyd-starter"
 path = "src/main.rs"
 required-features = ["esp32"]
 
-[[example]]
-name = "one_spi"
-path = "examples/one_spi.rs"
-required-features = ["esp32"]
-
 [profile.dev]
 panic = "abort"
 
