@@ -57,8 +57,6 @@ These are reference links, not affiliate links. Amazon listings can change.
 
 ## Set up your computer (Linux, macOS, Windows, and WSL2)
 
-On Windows, run commands in PowerShell rather than Command Prompt.
-
 Install Rust 1.93 or newer [using rustup](https://rustup.rs/) if `cargo` and
 `rustup` are not already available. You will also need Git and a data-capable
 USB cable for the physical board.
@@ -100,43 +98,10 @@ cargo install espflash
 
 ### Use USB hardware from WSL2
 
-WSL2 cannot access the CYD's USB serial adapter until Windows shares it with
-the WSL virtual machine. Install
-[`usbipd-win`](https://learn.microsoft.com/windows/wsl/connect-usb) from Windows
-PowerShell:
-
-```powershell
-winget install --interactive --exact dorssel.usbipd-win
-```
-
-Keep a WSL terminal open, connect the CYD, and run this in Windows PowerShell
-opened as Administrator:
-
-```powershell
-usbipd list
-usbipd bind --busid <BUSID>
-```
-
-Choose the BUSID for the `USB-SERIAL CH340` or similar USB-UART device. Binding
-is a one-time administrator operation and persists across reboots. Attaching is
-not persistent, so this repository does it automatically whenever you run
-`just run-esp`. You can also attach explicitly from WSL:
-
-```sh
-just attach-wsl
-```
-
-If more than one compatible USB-UART adapter is connected, select the CYD by
-BUSID:
-
-```sh
-just attach-wsl 4-4
-```
-
-Run `wsl --update` from Windows PowerShell if attachment succeeds but no
-`/dev/ttyUSB*` device appears in WSL. Microsoft documents the setup and
-troubleshooting steps in [Connect USB devices under Windows Subsystem for
-Linux](https://learn.microsoft.com/windows/wsl/connect-usb).
+Install [`usbipd-win`](https://learn.microsoft.com/windows/wsl/connect-usb),
+then connect the CYD and use `just run-esp` normally from WSL. The repository
+finds the USB serial adapter, asks for Windows administrator approval the first
+time it needs to be shared, and attaches it to WSL automatically.
 
 ## Get the source
 
@@ -206,7 +171,6 @@ and this [code](https://github.com/CarlKCarlK/linkage-blaze/tree/main/crates/lin
 
 | Command | What it does |
 | --- | --- |
-| `just attach-wsl [BUSID]` | Attaches the CYD's USB serial adapter to WSL2 |
 | `just run-wasm` | Builds the browser application and starts a local server |
 | `just run-esp` | Builds, flashes, and monitors the physical CYD |
 | `just check-wasm` | Checks the browser application |

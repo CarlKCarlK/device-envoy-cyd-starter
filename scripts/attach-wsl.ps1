@@ -79,11 +79,19 @@ if ($device.State -like 'Attached*') {
 }
 
 if ($device.State -like '*Not shared*' -or $device.State -like '*NotShared*') {
-    Write-Host "$prefix $($device.Description) is not shared with WSL." -ForegroundColor Yellow
-    Write-Host 'Run this once in Windows PowerShell opened as Administrator:' -ForegroundColor Yellow
-    Write-Host "  usbipd bind --busid $($device.BusId)" -ForegroundColor Cyan
-    Write-Host 'Then return to WSL and run just run-esp again.' -ForegroundColor Yellow
-    exit 1
+    Write-Host "$prefix sharing $($device.Description) with WSL..." -ForegroundColor Cyan
+    Write-Host 'Windows will ask for administrator approval once.' -ForegroundColor Yellow
+
+    $usbipd = (Get-Command usbipd).Source
+    $process = Start-Process -FilePath $usbipd `
+        -ArgumentList @('bind', '--busid', $device.BusId) `
+        -Verb RunAs `
+        -Wait `
+        -PassThru
+    if ($process.ExitCode -ne 0) {
+        Write-Error "usbipd bind failed with exit code $($process.ExitCode)."
+        exit $process.ExitCode
+    }
 }
 
 Write-Host "$prefix attaching $($device.Description) to WSL..." -ForegroundColor Cyan
