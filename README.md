@@ -18,25 +18,13 @@ run it unchanged in your browser or on the physical board, then replace the
 application code  in [`src/app.rs`](src/app.rs) with whatever you want to build.
 The hardware and software setup in [`src/main.rs`](src/main.rs) can stay unchanged.
 
-## Try it in your browser
+## Try the live browser demo
 
 **[Open the live CYD paint book](https://carlkcarlk.github.io/device-envoy-cyd-starter/)**
 
 The browser simulator runs the same application code as the physical board.
 Click or drag on its touchscreen to use it. No hardware or software installation
 is required for the browser version.
-
-To build and test the web version locally on your own computer, follow
-[Set up your computer](#set-up-your-computer-linux-macos-and-windows) and
-[Get the source](#get-the-source),
-then run:
-
-```sh
-just run-wasm
-```
-
-Open <http://127.0.0.1:8092/> in your browser. Press `Ctrl+C` in the terminal to
-stop the local server.
 
 ## What the paint book does
 
@@ -110,28 +98,23 @@ espup install
 cargo install espflash
 ```
 
-The `just` ESP commands automatically load the environment file created by
-`espup`. If another terminal command needs the Xtensa tools directly, load it
-with the command for your operating system.
-
-On Linux or macOS:
-
-```sh
-source "$HOME/export-esp.sh"
-```
-
-On Windows PowerShell:
-
-```powershell
-& "$env:USERPROFILE\export-esp.ps1"
-```
-
 ## Get the source
 
 ```sh
 git clone https://github.com/CarlKCarlK/device-envoy-cyd-starter.git
 cd device-envoy-cyd-starter
 ```
+
+## Run the application locally in your browser
+
+Build and serve the browser simulator:
+
+```sh
+just run-wasm
+```
+
+Open <http://127.0.0.1:8092/> in your browser. Press `Ctrl+C` in the terminal to
+stop the local server.
 
 ## Run the application on the CYD
 
