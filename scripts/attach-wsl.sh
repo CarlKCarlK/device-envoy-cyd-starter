@@ -30,6 +30,23 @@ attempt=0
 while [ "$attempt" -lt 20 ]; do
     for port in /dev/ttyUSB* /dev/ttyACM*; do
         if [ -e "$port" ]; then
+            if [ ! -r "$port" ] || [ ! -w "$port" ]; then
+                wsl_exe=/mnt/c/Windows/System32/wsl.exe
+                if [ ! -x "$wsl_exe" ] || [ -z "${WSL_DISTRO_NAME:-}" ]; then
+                    echo "The CYD serial port is present at $port, but the current user cannot access it." >&2
+                    exit 1
+                fi
+
+                echo "Granting the current WSL user access to $port..."
+                "$wsl_exe" --distribution "$WSL_DISTRO_NAME" --user root -- \
+                    chown "$(id -u):$(id -g)" "$port"
+            fi
+
+            if [ ! -r "$port" ] || [ ! -w "$port" ]; then
+                echo "The CYD serial port is present at $port, but access could not be granted." >&2
+                exit 1
+            fi
+
             echo "CYD serial port available at $port"
             exit 0
         fi

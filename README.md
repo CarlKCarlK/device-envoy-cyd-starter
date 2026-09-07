@@ -98,10 +98,16 @@ cargo install espflash
 
 ### Use USB hardware from WSL2
 
-Install [`usbipd-win`](https://learn.microsoft.com/windows/wsl/connect-usb),
-then connect the CYD and use `just run-esp` normally from WSL. The repository
-finds the USB serial adapter, asks for Windows administrator approval the first
-time it needs to be shared, and attaches it to WSL automatically.
+From WSL, install
+[`usbipd-win`](https://learn.microsoft.com/windows/wsl/connect-usb) on Windows:
+
+```sh
+powershell.exe -NoProfile -Command "winget install --interactive --exact dorssel.usbipd-win"
+```
+
+Then connect the CYD and use `just run-esp` normally. The repository finds the
+USB serial adapter, asks for Windows administrator approval the first time it
+needs to be shared, attaches it, and grants your WSL user access automatically.
 
 ## Get the source
 
