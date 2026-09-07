@@ -171,8 +171,14 @@ Then test it on the board:
 just run-esp
 ```
 
-You can replace the paint book code with your own game,
-instrument display, controller, or other touchscreen application. For more CYD example code, including code that uses WI-FI, see this [gallery](https://carlkcarlk.github.io/linkage-blaze/demos/) of demos and this [code](https://github.com/CarlKCarlK/linkage-blaze/tree/main/crates/linkage-blaze-examples-esp/examples/esp32/generic).
+You can replace the paint book code with your own game, instrument display,
+controller, or other touchscreen application. Device Envoy also provides
+automatic Wi-Fi setup: if credentials have not been saved, the CYD creates a
+temporary Wi-Fi network with a browser-based setup form, then stores the
+credentials and reconnects automatically on later boots. For CYD examples that
+use this Wi-Fi support, see this [gallery](https://carlkcarlk.github.io/linkage-blaze/demos/)
+and this [code](https://github.com/CarlKCarlK/linkage-blaze/tree/main/crates/linkage-blaze-examples-esp/examples/esp32/generic).
+
 ## Commands you need
 
 | Command | What it does |

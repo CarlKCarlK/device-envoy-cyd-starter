@@ -4,7 +4,8 @@ set shell := ["sh", "-cu"]
 [windows]
 set shell := ["powershell.exe", "-NoLogo", "-Command"]
 
-_esp_args := "--target xtensa-esp32-none-elf --no-default-features --features esp32 --release -Zbuild-std=core,alloc"
+# Quote the comma-containing value so PowerShell passes it as one Cargo argument.
+_esp_args := '--target xtensa-esp32-none-elf --no-default-features --features esp32 --release "-Zbuild-std=core,alloc"'
 
 [unix]
 _esp_environment := '. "$HOME/export-esp.sh";'
