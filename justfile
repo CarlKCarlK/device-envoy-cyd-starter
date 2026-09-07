@@ -45,8 +45,12 @@ build-wasm:
 # Build the ESP32 and browser applications.
 build-all: build-esp build-wasm
 
+# Make the CYD USB serial adapter available to WSL2.
+attach-wsl busid="":
+    sh scripts/attach-wsl.sh "{{ busid }}"
+
 # Build, flash, and monitor the ESP32 application.
-run-esp:
+run-esp: _prepare-wsl-usb
     {{ _esp_environment }} cargo +esp run --bin device-envoy-cyd-starter {{ _esp_args }}
 
 # Build and serve the browser application.
@@ -58,3 +62,8 @@ run-wasm: _check-miniserve build-wasm
 [private]
 _check-miniserve:
     {{ _require_miniserve }}
+
+# Attach the CYD automatically on WSL2 and do nothing on native operating systems.
+[private]
+_prepare-wsl-usb:
+    sh scripts/attach-wsl.sh --if-wsl

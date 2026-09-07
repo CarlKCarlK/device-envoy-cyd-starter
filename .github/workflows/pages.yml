@@ -44,6 +44,7 @@ jobs:
         working-directory: device-envoy-cyd-starter
         run: |
           mkdir pages
+          cp wasm/favicon.ico wasm/favicon.png wasm/favicon.svg pages/
           cp wasm/index.html pages/index.html
           cp -R wasm/pkg pages/pkg
           cp -R wasm/www pages/www
