@@ -73,22 +73,24 @@ where
     // If empty or the flash block contains the wrong type, default to the first page.
     let mut page = page_flash_block.load::<Page>()?.unwrap_or_default();
 
-
-    // Draw the first page's bitmap to the frame buffer and flush it to the display.
+    // Draw the first page's bitmap to the frame buffer.
     DrawItem::Bitmap {
         view: page.bitmap(),
         top_left: Point::zero(),
     }
     .draw(&mut frame);
-    frame.flush().await?;
 
+    // Optionally, write text to the frame buffer.
+    // frame.write_text("Device Envoy Paint Book");
+
+    // Send the frame buffer to the device.
+    frame.flush().await?;
 
     // Keep track of the previous touch point for drawing lines.
     let mut previous_point = None;
 
     // Start the "game" loop.
     loop {
-
         // User must always be able to recalibrate the touch screen.
         // If the user presses the button on the back of the CYD, exit this function
         // and return to the hardware-specific caller.
@@ -115,6 +117,11 @@ where
                     top_left: Point::zero(),
                 }
                 .draw(&mut frame);
+
+                // Optionally, write text to the frame buffer.
+                // frame.write_text("Device Envoy Paint Book");
+
+                // Remember the new page selection in flash.
                 page_flash_block.save(&page)?;
             }
             // When a touch begins elsewhere on the page,
