@@ -1,30 +1,48 @@
-set shell := ["bash", "-cu"]
+[unix]
+set shell := ["sh", "-cu"]
 
+[windows]
+set shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+_esp_args := "--target xtensa-esp32-none-elf --no-default-features --features esp32 --release -Zbuild-std=core,alloc"
+
+[unix]
+_esp_environment := '. "$HOME/export-esp.sh";'
+
+[windows]
+_esp_environment := '& "$env:USERPROFILE\export-esp.ps1";'
+
+# Check the shared application with the host Rust toolchain.
 check-host:
-    cargo test --lib --no-default-features --target x86_64-unknown-linux-gnu
+    cargo test --lib --no-default-features
 
+# Check the ESP32 application.
 check-esp:
-    cargo +esp check --bin device-envoy-cyd-starter --target xtensa-esp32-none-elf --features esp32 --release -Zbuild-std=core,alloc
+    {{_esp_environment}} cargo +esp check --bin device-envoy-cyd-starter {{_esp_args}}
 
-demo-cyd:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    esp_export="${HOME}/export-esp.sh"
-    if [[ ! -f "${esp_export}" ]]; then
-        echo "Missing ${esp_export}. Install the Xtensa toolchain with 'cargo install espup' and 'espup install'." >&2
-        exit 1
-    fi
-    source "${esp_export}"
-    cargo +esp run --release --target xtensa-esp32-none-elf --no-default-features --features esp32 -Zbuild-std=core,alloc
+# Check the browser application.
+check-wasm:
+    cargo check --package device-envoy-cyd-starter-wasm --target wasm32-unknown-unknown
 
+# Check the shared, ESP32, and browser applications.
+check-all: check-host check-esp check-wasm
+
+# Build the ESP32 application.
+build-esp:
+    {{_esp_environment}} cargo +esp build --bin device-envoy-cyd-starter {{_esp_args}}
+
+# Build the browser application.
 build-wasm:
     wasm-pack build wasm --target web --out-dir pkg
 
-demo-wasm: build-wasm
+# Build the ESP32 and browser applications.
+build-all: build-esp build-wasm
+
+# Build, flash, and monitor the ESP32 application.
+run-esp:
+    {{_esp_environment}} cargo +esp run --bin device-envoy-cyd-starter {{_esp_args}}
+
+# Build and serve the browser application.
+run-wasm: build-wasm
     @echo "Open http://127.0.0.1:8092/ in your browser."
-    python3 -m http.server 8092 --directory wasm
-
-serve-wasm:
-    python3 -m http.server 8092 --directory wasm
-
-check-all: check-host check-esp build-wasm
+    miniserve --interfaces 127.0.0.1 --port 8092 --index index.html wasm

@@ -1,116 +1,126 @@
-todo0000 This is a pre-release version
+stil# Device Envoy CYD starter
 
-# Device Envoy CYD Paint Book starter
+> **Pre-release:** This starter is still being prepared for its first release.
 
-Classic CYD (`ESP32-2432S028R`, 2.8-inch 240×320 ILI9341 display, and XPT2046
-resistive touch) paint-book starter for Device Envoy. The same application code
-runs on real hardware and in the browser CYD simulator.
+The Cheap Yellow Display (CYD) is an inexpensive ESP32 development board with
+a built-in color touchscreen. This repository is a ready-to-run Rust starter
+for the classic `ESP32-2432S028R` CYD.
 
-Start a stroke on a color and drag it into the picture. The color is sampled
-from the framebuffer at the start of the stroke, so painted areas intentionally
-become new color sources. There is no separate fixed palette. Touch the folded
-corner to switch between the crab-beach, dog-walk, and cave-art pages. The
-selected page survives a restart.
+[Device Envoy](https://crates.io/crates/device-envoy-core) is the Rust library
+that connects the portable application to the CYD's display, touchscreen,
+button, and storage—or to browser simulations of those devices.
 
-## Run it
+This starter project initially runs a touchscreen paint-book application. First
+run it unchanged in your browser or on the physical board, then replace the
+portable application in [`src/app.rs`](src/app.rs) with whatever you want to
+build. The hardware setup in [`src/main.rs`](src/main.rs) can stay unchanged.
 
-In a browser:
+<!-- TODO000 Add a short GIF showing color pickup, painting, and a page turn. -->
+
+## Try it in your browser
+
+**[Open the live CYD paint book](https://carlkcarlk.github.io/device-envoy-cyd-starter/)**
+
+The browser simulator runs the same application code as the physical board.
+Click or drag on its touchscreen to use it. No hardware or software installation
+is required for the live version.
+
+To build and test the web version locally on your own computer, follow
+[Set up your computer](#set-up-your-computer) and [Get the source](#get-the-source),
+then run:
 
 ```sh
-just demo-wasm
+just run-wasm
 ```
 
-The current `main` branch is also published at
-<https://carlkcarlk.github.io/device-envoy-cyd-starter/>. The GitHub Pages
-workflow builds and replaces that single site on every push to `main`. Select
-**GitHub Actions** as the repository's Pages source once under **Settings →
-Pages**.
+Open <http://127.0.0.1:8092/> in your browser. Press
+<kbd>Ctrl</kbd>+<kbd>C</kbd> in the terminal to stop the local server.
 
-On a factory-wired classic CYD:
+## What the paint book does
 
-```sh
-just demo-cyd
-```
+Start a stroke on a color and drag it into the picture. The paint brush picks
+up the color under your first touch, so anything you have already painted can
+become a new color source. There is no separate palette.
 
-The first hardware boot walks through touch calibration and saves it. Press the
-BOOT button at any time to discard that calibration and repeat it after the
-device restarts.
+Touch the folded corner to switch between the crab-beach, dog-walk, and cave-art
+pages. The selected page is saved and survives a restart. On the physical CYD,
+the first boot also guides you through touchscreen calibration.
 
-## Hardware compatibility and purchasing
+The paint book is deliberately small enough to replace. It demonstrates:
 
-This starter targets the classic CYD described above, using an original ESP32
-rather than an ESP32-S3 or ESP32-C3. Before buying or flashing a board, check
-that its listing and the model printed on its back identify an
-`ESP32-2432S028R` with an ILI9341 display and XPT2046 resistive touch. The
-original single-micro-USB revision is the safest choice.
-
-The two-port `CYD2USB`, ST7789 display revisions, capacitive-touch and no-touch
-models, `JC2432W328` boards, other screen sizes, and boards using another ESP32
-variant are not supported by this starter as currently configured.
-
-The items ordered for this starter are:
-
-- [2.8-inch ESP32-2432S028R board](https://www.amazon.com/dp/B0BVFXR313) — its
-  listing identifies an ILI9341 display and resistive touch;
-- [optional acrylic case](https://www.amazon.com/dp/B0D9JQ6GRC?th=1) — listed
-  for the 2.8-inch ESP32-2432S028R.
-
-Amazon listings and fulfilled hardware can change, so confirm those identifying
-details before ordering.
-
-## What the starter demonstrates
-
+- drawing into and reading from a full-screen frame;
 - calibrated, orientation-correct touch input;
-- a full-screen RGB565 frame that can be read, drawn into, and flushed;
-- compile-time TGA-to-RGB565 bitmap assets;
-- typed flash storage for the current page;
-- one portable application shared by ESP32 and WASM;
-- explicit hardware construction for the factory CYD wiring.
+- bitmap assets compiled into the program;
+- saving a typed value in flash storage; and
+- sharing one portable application between ESP32 hardware and WebAssembly.
 
-The framebuffer itself is the painting. On touch-down, the app reads that
-pixel's color; touch movement draws a thick line with the carried color. This
-deliberately makes the canvas both the rendered image and the color source for
-future strokes. It keeps the portable application in
-[`src/app.rs`](src/app.rs) concise: there is no separate palette, scene graph,
-modal state, dirty-region renderer, or game engine.
+## Get the supported CYD
 
-## Repository layout
+This starter supports the classic **2.8-inch `ESP32-2432S028R`** with:
 
-```text
-src/lib.rs   library entry point that exposes the portable application
-src/app.rs   shared state, touch loop, bitmap pages, and drawing
-src/main.rs  factory classic-CYD hardware construction
-wasm/        thin browser launcher and simulator shell
-assets/      320x240 TGA pages and editable PNG sources
+- the original ESP32 chip;
+- an ILI9341 display controller; and
+- XPT2046 resistive touch.
+
+The panel is physically 240×320 pixels; this starter uses it in 320×240
+landscape orientation.
+
+Before ordering, check both the listing and the model printed on the back of the
+board. The original single-Micro-USB revision is the safest choice.
+
+These are ordinary product links for reference. They are not affiliate links,
+and neither this project nor its authors sell these products.
+
+- [2.8-inch ESP32-2432S028R board used for this starter](https://www.amazon.com/dp/B0BVFXR313)
+- [Optional acrylic case for the 2.8-inch ESP32-2432S028R](https://www.amazon.com/dp/B0D9JQ6GRC?th=1)
+
+Amazon listings and the hardware supplied under them can change. Confirm the
+model number, display controller, and touch controller before ordering.
+
+> **Not currently supported:** two-port `CYD2USB` boards, ESP32-S3 or ESP32-C3
+> variants, ST7789 displays, capacitive-touch or no-touch models, `JC2432W328`
+> boards, and other screen sizes.
+
+<!-- TODO000 Add front-and-back photos of the supported board, with the printed
+ESP32-2432S028R model number highlighted. -->
+
+## Set up your computer
+
+The commands in this README support Linux, macOS, and Windows PowerShell. On
+Windows, run them in PowerShell rather than Command Prompt.
+
+Install Rust 1.93 or newer [using rustup](https://rustup.rs/) if `cargo` and
+`rustup` are not already available. You will also need Git and a data-capable
+USB cable for the physical board.
+
+### Install the command runner
+
+[`just`](https://github.com/casey/just#installation) gives this repository short,
+consistent development commands. Install it with Cargo:
+
+```sh
+cargo install just
 ```
 
-This keeps the application in one platform-neutral module while the ESP32 and
-browser launchers each contain only their platform setup. `src/lib.rs` makes
-that shared application available to both launchers.
+`just` is not part of Rust or Device Envoy; it runs the Cargo, flashing, and web
+server commands defined in this repository's `justfile`.
 
-## Hardware wiring
+### Install browser tools
 
-The default binary targets the classic ESP32-2432S028R and uses its factory
-two-SPI wiring:
+To build and serve the browser simulator locally, install `wasm-pack`, the WASM
+Rust target, and the cross-platform Rust web server
+[`miniserve`](https://github.com/svenstaro/miniserve):
 
-| Function | GPIO |
-| --- | ---: |
-| Display SCK / MOSI / MISO | 14 / 13 / 12 |
-| Display CS / DC / backlight | 15 / 2 / 21 |
-| Display reset | Board reset / EN (no dedicated GPIO) |
-| Touch SCK / MOSI / MISO | 25 / 32 / 39 |
-| Touch CS / IRQ | 33 / 36 |
-| BOOT/recalibration | 0 |
+```sh
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack --locked --version 0.15.0
+cargo install --locked miniserve
+```
 
-This mapping follows the
-[ESP32-2432S028R schematic](https://www.ardboard.com/downloads/ESP32_2432S028R_Schematics.pdf),
-including the display reset connection to the board reset/EN net. Other
-CYD-branded boards and clone revisions may use different wiring.
+### Install ESP32 tools
 
-## Toolchain
-
-Install Rust 1.93 or newer, the Xtensa ESP Rust toolchain, and the flashing
-tool:
+The classic CYD uses the Xtensa-based original ESP32, which needs Espressif's
+Rust toolchain and a flashing tool:
 
 ```sh
 cargo install espup
@@ -118,17 +128,114 @@ espup install
 cargo install espflash
 ```
 
-The browser demo additionally requires `wasm32-unknown-unknown` and
-`wasm-pack`. This development checkout currently expects Device Envoy at
-`../device-envoy`.
+The `just` ESP commands automatically load the environment file created by
+`espup`. If another terminal command needs the Xtensa tools directly, load it
+with the command for your operating system.
 
-TODO0 Replace the local Device Envoy paths with released crate versions and
-regenerate `Cargo.lock` before release.
+On Linux or macOS:
 
-## Verification
+```sh
+source "$HOME/export-esp.sh"
+```
+
+On Windows PowerShell:
+
+```powershell
+& "$env:USERPROFILE\export-esp.ps1"
+```
+
+## Get the source
+
+```sh
+git clone https://github.com/CarlKCarlK/device-envoy-cyd-starter.git
+cd device-envoy-cyd-starter
+```
+
+## Run it on the CYD
+
+Connect the board with a data-capable Micro-USB cable, then run:
+
+```sh
+just run-esp
+```
+
+This builds the release binary, flashes it to the board, and opens the serial
+monitor. Follow the instructions on the CYD to calibrate its touchscreen the
+first time it starts.
+
+Press the **BOOT** button on the back of the board at any time to request a new
+touch calibration. The saved calibration is cleared and calibration runs again
+after the board restarts. Your selected paint-book page is kept.
+
+If the flasher cannot open the serial port on Linux, check your USB device
+permissions. If no serial port appears at all, first try another cable; many USB
+cables supply power but do not carry data.
+
+## Make it your own
+
+Once the paint book works, edit [`src/app.rs`](src/app.rs). It contains the
+portable application state, touch loop, images, and drawing behavior. Keep
+[`src/main.rs`](src/main.rs) unchanged at first; it constructs the display,
+touchscreen, BOOT button, and flash storage for the factory-wired CYD.
+
+Use the browser for a quick development loop:
+
+```sh
+just run-wasm
+```
+
+Then test the same application on the board:
+
+```sh
+just run-esp
+```
+
+You can replace the paint loop, page state, and assets with your own game,
+instrument display, controller, or other touchscreen application. Remove the
+example images under `assets/` when your application no longer uses them.
+
+<!-- TODO000 Add a small diagram showing src/app.rs feeding both the browser
+simulator and the physical CYD. -->
+
+<!-- todo000 test on windows. -->
+<!-- todo000 read this carefully -->
+
+## Commands you need
+
+| Command | What it does |
+| --- | --- |
+| `just run-wasm` | Builds the browser application and starts a local server |
+| `just run-esp` | Builds, flashes, and monitors the physical CYD |
+| `just check-wasm` | Checks the browser application |
+| `just check-esp` | Checks the ESP32 application |
+| `just check-all` | Checks the shared, browser, and ESP32 applications |
+| `just build-wasm` | Builds the browser application |
+| `just build-esp` | Builds the ESP32 application |
+| `just build-all` | Builds the browser and ESP32 applications |
+
+Run the full local verification before sharing changes:
 
 ```sh
 just check-all
 ```
 
-TODO00 add thanks for Jeff B. and John
+## Repository layout
+
+```text
+src/app.rs   portable application state, touch loop, images, and drawing
+src/lib.rs   library entry point that exposes the portable application
+src/main.rs  factory classic-CYD hardware construction
+wasm/        browser launcher and CYD simulator shell
+assets/      320×240 TGA pages and editable PNG sources
+```
+
+The browser launcher and ESP32 binary both call the application in `src/app.rs`.
+Platform-specific setup stays outside that file, making it the natural place to
+start building your own application.
+
+## Acknowledgments
+
+Thank you to:
+
+- Jeff B. for inspiring the idea of a finger-paint simulator.
+- John K. for the idea behind the Cave Art picture.
