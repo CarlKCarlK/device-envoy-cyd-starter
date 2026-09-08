@@ -8,7 +8,7 @@ The Cheap Yellow Display (CYD) is an inexpensive ESP32 development board with
 a built-in color touchscreen. This repository is a ready-to-run Rust starter
 for the classic CYD (`ESP32-2432S028R`).
 
-The [Device Envoy](https://crates.io/crates/device-envoy-esps) crate makes it easier to
+The [Device Envoy](https://crates.io/crates/device-envoy-esp) crate makes it easier to
 write higher-level Rust applications that run bare metal, without an operating
 system. For the CYD, it provides access to the display, touchscreen, button,
 and storage, plus browser simulations for testing and demonstration.
