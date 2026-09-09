@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: CarlKCarlK/device-envoy
-          ref: dev2026sept
+          ref: v0.1.6
           path: device-envoy
 
       - name: Install WASM target

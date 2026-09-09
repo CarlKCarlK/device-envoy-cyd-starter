@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 wasm-opt = false
 
 [dependencies]
-device-envoy-core = { version = "0.1.5", features = ["wasm"] }
+device-envoy-core = { version = "0.1.6", features = ["wasm"] }
 device-envoy-cyd-starter = { path = "..", default-features = false }
 derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
 embassy-executor = { version = "0.10.0", features = ["platform-wasm", "executor-thread"] }
