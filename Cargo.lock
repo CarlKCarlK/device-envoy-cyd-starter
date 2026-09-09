@@ -337,9 +337,9 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-core"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3b0242999abfe81f0e46c90c0e6e8dc5959538560c6c57fbd39494270baacaf"
+checksum = "b1a5da2efcf134e17d5ca11aa07bc7c771e8d81542d734420c8d89937f66ecf5"
 dependencies = [
  "crc32fast",
  "critical-section",
@@ -406,9 +406,9 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-esp"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb50b78b6c4d83277cc7507fa340cdf8289f1c38aa69358b9fb3e6619cc59dbb"
+checksum = "e80d0ab4cb72ca70b72472d4ac4e4e713ec1ae1e712e4cf08cf511f6e609307b"
 dependencies = [
  "derive_more",
  "device-envoy-core",
@@ -1632,14 +1632,13 @@ checksum = "c3c8dda44ff03a2f238717214da50f65d5a53b45cd213a7370424ffdb6fae815"
 
 [[package]]
 name = "mipidsi"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ba34dcbf61182ffa6992b5a4d9b566d5a99df127fd93f6d314213347329e92f"
+checksum = "790ebd28bd67addbccf41b1c0c188c26bb9f5bdcd91d4d6da9bd558e20d97a1d"
 dependencies = [
  "embedded-graphics-core",
  "embedded-hal 1.0.0",
  "heapless 0.8.0",
- "nb 1.1.0",
 ]
 
 [[package]]
