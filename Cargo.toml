@@ -23,7 +23,6 @@ esp32 = [
     "dep:esp-println",
     "dep:esp-rtos",
     "dep:log",
-    "dep:static_cell",
     "device-envoy-esp/esp32",
 ]
 
@@ -33,7 +32,6 @@ device-envoy-core = { version = "0.2.0", path = "../device-envoy/crates/device-e
 derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
 embassy-time = "0.5.1"
 embedded-graphics = { version = "0.8", default-features = false }
-heapless = "0.9"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 # TODO0 Remove `path` once device-envoy-esp 0.2.0 is published to crates.io.
@@ -45,7 +43,6 @@ esp-hal = { version = "1.1.2", default-features = false, features = ["unstable",
 esp-println = { version = "0.17.0", default-features = false, features = ["uart", "log-04", "esp32"], optional = true }
 esp-rtos = { version = "0.3.0", default-features = false, features = ["embassy", "esp-radio", "esp-alloc", "esp32"], optional = true }
 log = { version = "0.4", default-features = false, optional = true }
-static_cell = { version = "2.1.1", optional = true }
 
 [[bin]]
 name = "device-envoy-cyd-starter"
