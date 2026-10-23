@@ -12,7 +12,8 @@ crate-type = ["cdylib", "rlib"]
 wasm-opt = false
 
 [dependencies]
-device-envoy-core = { version = "0.1.6", features = ["wasm"] }
+# TODO0 Remove `path` once device-envoy-core 0.2.0 is published to crates.io.
+device-envoy-core = { version = "0.2.0", path = "../../device-envoy/crates/device-envoy-core", features = ["wasm"] }
 device-envoy-cyd-starter = { path = "..", default-features = false }
 derive_more = { version = "2.1.1", default-features = false, features = ["from"] }
 embassy-executor = { version = "0.10.0", features = ["platform-wasm", "executor-thread"] }

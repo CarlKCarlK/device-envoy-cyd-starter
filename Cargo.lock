@@ -46,7 +46,7 @@ checksum = "c0cb6f3d4773a2107b94cbeccaa5b5f0b35a88389b5d522d13d659f64317b22d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -230,7 +230,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -263,7 +263,7 @@ checksum = "2ac7135c3ef02b2f7833bbeb1be5ba7f966dcde8a87c6b87f65a778d71a02785"
 dependencies = [
  "darling_core 0.24.1",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -337,9 +337,7 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-core"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1a5da2efcf134e17d5ca11aa07bc7c771e8d81542d734420c8d89937f66ecf5"
+version = "0.2.0"
 dependencies = [
  "crc32fast",
  "critical-section",
@@ -352,8 +350,8 @@ dependencies = [
  "embedded-graphics",
  "heapless 0.9.3",
  "js-sys",
+ "macro-schema",
  "micromath",
- "paste",
  "portable-atomic",
  "postcard",
  "profont",
@@ -406,9 +404,7 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-esp"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e80d0ab4cb72ca70b72472d4ac4e4e713ec1ae1e712e4cf08cf511f6e609307b"
+version = "0.2.0"
 dependencies = [
  "derive_more",
  "device-envoy-core",
@@ -430,6 +426,7 @@ dependencies = [
  "esp-storage",
  "heapless 0.9.3",
  "log",
+ "macro-schema",
  "mipidsi",
  "paste",
  "portable-atomic",
@@ -1346,7 +1343,7 @@ checksum = "9fb9654ba8355388abeb8dcb4fc62f511300867002afc858860463bdd9fe0c44"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -1486,7 +1483,7 @@ dependencies = [
  "indoc",
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -1601,6 +1598,36 @@ dependencies = [
  "scoped-tls",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "macro-schema"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cb9d3394aee92caddf593ba8a6d23fd9207c34ae2056c0c956e407515725599"
+dependencies = [
+ "macro-schema-derive",
+]
+
+[[package]]
+name = "macro-schema-core"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97b0908e05d9100ed3d8ea4661d87a81a26d006d0aaba384560a93d04c7abf77"
+dependencies = [
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+]
+
+[[package]]
+name = "macro-schema-derive"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52e784ab006068b3572170d5433a4b4f1ddec35c5b3a772b22f4a8e8b705f34f"
+dependencies = [
+ "macro-schema-core",
 ]
 
 [[package]]
@@ -1791,6 +1818,16 @@ name = "powerfmt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
+
+[[package]]
+name = "prettyplease"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bfe0f4c752e450fc2faf62654f1c134747922825d5b04ca717b8874f41a40c0"
+dependencies = [
+ "proc-macro2",
+ "syn 3.0.9",
+]
 
 [[package]]
 name = "proc-macro-crate"
@@ -2021,7 +2058,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
@@ -2187,9 +2224,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.4"
+version = "3.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f"
+checksum = "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2222,7 +2259,7 @@ checksum = "bc04cd3e1236dd4a98afca4569f2deb3f120e5422a4023be2cb683f8486292af"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.4",
+ "syn 3.0.9",
 ]
 
 [[package]]
