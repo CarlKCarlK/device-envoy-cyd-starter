@@ -381,7 +381,6 @@ dependencies = [
  "esp-rtos",
  "heapless 0.9.3",
  "log",
- "paste",
  "serde",
  "static_cell",
 ]
