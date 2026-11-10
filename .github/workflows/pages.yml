@@ -23,12 +23,12 @@ jobs:
         with:
           path: device-envoy-cyd-starter
 
-      - name: Check out Device Envoy dependency
-        uses: actions/checkout@v6
-        with:
-          repository: CarlKCarlK/device-envoy
-          ref: v0.1.6
-          path: device-envoy
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Check the browser shell matches device-envoy-core
+        working-directory: device-envoy-cyd-starter
+        run: just check-shell
 
       - name: Install WASM target
         run: rustup target add wasm32-unknown-unknown

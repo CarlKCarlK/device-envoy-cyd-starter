@@ -181,7 +181,8 @@ and this [code](https://github.com/CarlKCarlK/linkage-blaze/tree/main/crates/lin
 | `just run-esp` | Builds, flashes, and monitors the physical CYD |
 | `just check-wasm` | Checks the browser application |
 | `just check-esp` | Checks the ESP32 application |
-| `just check-all` | Checks the shared, browser, and ESP32 applications |
+| `just check-all` | Checks the shared, browser, and ESP32 applications, and the browser shell |
+| `just sync-shell` | Copies the browser shell from the `device-envoy-core` crate into `wasm/www` |
 | `just build-wasm` | Builds the browser application |
 | `just build-esp` | Builds the ESP32 application |
 | `just build-all` | Builds the browser and ESP32 applications |
@@ -199,8 +200,14 @@ src/app.rs   core application
 src/lib.rs   small entry point that exposes the application
 src/main.rs  code to construct structs, etc for this hardware
 wasm/        browser launcher and CYD simulator shell
-sassets/      320×240 TGA pages and editable PNG sources
+assets/      320×240 TGA pages and editable PNG sources
 ```
+
+The simulator shell files in `wasm/www` (`cyd-simulator.js`,
+`cyd-simulator.css`, `case.png`, `desk.jpg`) are unmodified copies from the
+`device-envoy-core` crate; `wasm/www/app.js` holds this starter's settings.
+After changing the Device Envoy version, run `just sync-shell`; `just check-all`
+fails if the copies fall out of date.
 
 The browser launcher and ESP32 binary both call the application in `src/app.rs`.
 Platform-specific setup stays outside that file, making it the natural place to
