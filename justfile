@@ -13,6 +13,9 @@ _esp_environment := '. "$HOME/export-esp.sh";'
 [windows]
 _esp_environment := '& "$env:USERPROFILE\export-esp.ps1";'
 
+# Browser shell files that come unmodified from device-envoy-core's www directory.
+_shell_files := "cyd-simulator.js cyd-simulator.css case.png desk.jpg"
+
 [unix]
 _require_miniserve := "command -v miniserve >/dev/null || { echo 'miniserve is required. Install it with: cargo install --locked miniserve' >&2; exit 1; }"
 
@@ -31,8 +34,46 @@ check-esp:
 check-wasm:
     cargo check --package device-envoy-cyd-starter-wasm --target wasm32-unknown-unknown
 
-# Check the shared, ESP32, and browser applications.
-check-all: check-host check-esp check-wasm
+# Check that the browser shell in wasm/www matches the device-envoy-core crate.
+[unix]
+check-shell:
+    #!/bin/sh
+    set -eu
+    core_dir=$(cargo metadata --format-version 1 --locked | grep -o '"manifest_path":"[^"]*/device-envoy-core\(-[0-9][^/"]*\)\{0,1\}/Cargo.toml"' | head -n 1 | sed 's/^"manifest_path":"//; s#/Cargo.toml"$##')
+    test -n "$core_dir" || { echo "device-envoy-core not found in cargo metadata" >&2; exit 1; }
+    for file in {{ _shell_files }}; do
+        cmp -s "$core_dir/www/$file" "wasm/www/$file" || { echo "wasm/www/$file differs from $core_dir/www/$file; run just sync-shell" >&2; exit 1; }
+    done
+    echo "wasm/www shell matches $core_dir/www"
+
+[windows]
+check-shell:
+    $core = (cargo metadata --format-version 1 --locked | ConvertFrom-Json).packages | Where-Object name -eq 'device-envoy-core' | Select-Object -First 1; \
+    $coreDir = Split-Path $core.manifest_path; \
+    foreach ($file in '{{ _shell_files }}'.Split(' ')) { \
+        if ((Get-FileHash "$coreDir/www/$file").Hash -ne (Get-FileHash "wasm/www/$file").Hash) { Write-Error "wasm/www/$file differs from $coreDir/www/$file; run just sync-shell"; exit 1 } \
+    }; \
+    Write-Output "wasm/www shell matches $coreDir/www"
+
+# Copy the browser shell from the device-envoy-core crate into wasm/www.
+[unix]
+sync-shell:
+    #!/bin/sh
+    set -eu
+    core_dir=$(cargo metadata --format-version 1 --locked | grep -o '"manifest_path":"[^"]*/device-envoy-core\(-[0-9][^/"]*\)\{0,1\}/Cargo.toml"' | head -n 1 | sed 's/^"manifest_path":"//; s#/Cargo.toml"$##')
+    test -n "$core_dir" || { echo "device-envoy-core not found in cargo metadata" >&2; exit 1; }
+    for file in {{ _shell_files }}; do cp "$core_dir/www/$file" "wasm/www/$file"; done
+    echo "copied the shell from $core_dir/www"
+
+[windows]
+sync-shell:
+    $core = (cargo metadata --format-version 1 --locked | ConvertFrom-Json).packages | Where-Object name -eq 'device-envoy-core' | Select-Object -First 1; \
+    $coreDir = Split-Path $core.manifest_path; \
+    foreach ($file in '{{ _shell_files }}'.Split(' ')) { Copy-Item "$coreDir/www/$file" "wasm/www/$file" }; \
+    Write-Output "copied the shell from $coreDir/www"
+
+# Check the shared, ESP32, and browser applications, and the browser shell.
+check-all: check-host check-esp check-wasm check-shell
 
 # Build the ESP32 application.
 build-esp:
