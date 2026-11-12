@@ -337,9 +337,9 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-core"
-version = "0.2.6"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bbd16cd66569efec1b1e05da7977e30fa240672942d4238d29c41c24905a9d8"
+checksum = "906f875987748e5d7459eac150dbaef7cf19c7d993529ed83de3ee1ed2d3a13a"
 dependencies = [
  "crc32fast",
  "critical-section",
@@ -369,7 +369,7 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-cyd-starter"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "derive_more",
  "device-envoy-core",
@@ -388,7 +388,7 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-cyd-starter-wasm"
-version = "0.2.6"
+version = "0.3.0"
 dependencies = [
  "derive_more",
  "device-envoy-core",
@@ -404,9 +404,9 @@ dependencies = [
 
 [[package]]
 name = "device-envoy-esp"
-version = "0.2.6"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea9be38330a170ed35a45374f5961c3359e08864520819117827b8da49b83ef5"
+checksum = "6b4a7111670b25e16eba952047b03dd59038d46d075a76d9b601b180bf10dbfc"
 dependencies = [
  "derive_more",
  "device-envoy-core",
